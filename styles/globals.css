@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ci-navy: #0A2540;
+  --ci-slate: #1E293B;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  background-color: #0B1120;
+}
+
+body {
+  color: #0F172A;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.map-container {
+  width: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .map-container {
+    height: 400px;
+  }
+}
+
+@media (max-width: 767px) {
+  .map-container {
+    height: 250px;
+  }
+}
+
+.ci-card {
+  @apply bg-white rounded-xl shadow-sm border border-slate-100;
+}
+
+.ci-button-primary {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium
+  text-white bg-[#0A2540] hover:bg-[#0b2d52] focus:outline-none focus:ring-2
+  focus:ring-offset-2 focus:ring-[#0A2540] disabled:opacity-60 disabled:cursor-not-allowed;
+}
+
+.ci-button-secondary {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium
+  text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300;
+}
+
+.ci-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.ci-badge-severity-low {
+  @apply ci-badge bg-emerald-50 text-emerald-700;
+}
+
+.ci-badge-severity-medium {
+  @apply ci-badge bg-amber-50 text-amber-700;
+}
+
+.ci-badge-severity-high {
+  @apply ci-badge bg-rose-50 text-rose-700;
+}
+
+
+
