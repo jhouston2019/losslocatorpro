@@ -2,60 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import NavBar from '../components/NavBar';
-
-type LossStatus = 'Unreviewed' | 'Contacted' | 'Qualified' | 'Converted';
-
-type LossRow = {
-  id: string;
-  timestamp: string;
-  eventType: string;
-  severityScore: number;
-  zip: string;
-  incomeBand: string;
-  propertyType: string;
-  claimProbability: number;
-  internalPriority: number;
-  status: LossStatus;
-};
-
-const LOSS_DATA: LossRow[] = [
-  {
-    id: '1',
-    timestamp: '2025-12-10T13:24:00Z',
-    eventType: 'Hail',
-    severityScore: 92,
-    zip: '77024',
-    incomeBand: 'Top 10%',
-    propertyType: 'SFH',
-    claimProbability: 0.83,
-    internalPriority: 96,
-    status: 'Unreviewed',
-  },
-  {
-    id: '2',
-    timestamp: '2025-12-10T12:51:00Z',
-    eventType: 'Wind',
-    severityScore: 81,
-    zip: '30327',
-    incomeBand: 'Top 25%',
-    propertyType: 'SFH',
-    claimProbability: 0.68,
-    internalPriority: 88,
-    status: 'Contacted',
-  },
-  {
-    id: '3',
-    timestamp: '2025-12-10T11:05:00Z',
-    eventType: 'Fire',
-    severityScore: 78,
-    zip: '85054',
-    incomeBand: 'Median',
-    propertyType: 'Condo',
-    claimProbability: 0.72,
-    internalPriority: 82,
-    status: 'Qualified',
-  },
-];
+import { lossEvents } from '@/app/lib/mockData';
 
 export default function LossFeedPage() {
   const [eventFilter, setEventFilter] = useState<string>('all');
@@ -64,25 +11,38 @@ export default function LossFeedPage() {
   const [probThreshold, setProbThreshold] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortDesc, setSortDesc] = useState<boolean>(true);
+  const [search, setSearch] = useState('');
 
-  const filteredRows = useMemo(() => {
-    return LOSS_DATA.filter((row) => {
-      if (eventFilter !== 'all' && row.eventType !== eventFilter) return false;
-      if (row.severityScore < severityThreshold) return false;
+  const filtered = useMemo(() => {
+    const lowered = search.trim().toLowerCase();
+
+    const base = lossEvents.filter((e) => {
+      if (lowered) {
+        const matchesSearch =
+          e.zip.toLowerCase().includes(lowered) ||
+          e.event.toLowerCase().includes(lowered) ||
+          e.propertyType.toLowerCase().includes(lowered);
+        if (!matchesSearch) return false;
+      }
+      if (eventFilter !== 'all' && e.event !== eventFilter) return false;
+      if (e.severity < severityThreshold) return false;
       if (
         incomeBandFilter !== 'all' &&
-        row.incomeBand.toLowerCase() !== incomeBandFilter
+        e.incomeBand.toLowerCase() !== incomeBandFilter
       )
         return false;
-      if (row.claimProbability * 100 < probThreshold) return false;
-      if (statusFilter !== 'all' && row.status !== statusFilter) return false;
+      if (e.claimProbability * 100 < probThreshold) return false;
+      if (statusFilter !== 'all' && e.status !== statusFilter) return false;
       return true;
-    }).sort((a, b) =>
+    });
+
+    return base.sort((a, b) =>
       sortDesc
         ? b.timestamp.localeCompare(a.timestamp)
         : a.timestamp.localeCompare(b.timestamp),
     );
   }, [
+    search,
     eventFilter,
     severityThreshold,
     incomeBandFilter,
@@ -106,6 +66,12 @@ export default function LossFeedPage() {
         </header>
 
         <section className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-3">
+          <input
+            type="text"
+            placeholder="Search address, ZIP, event..."
+            className="w-full p-2 rounded-md bg-neutral-800 border border-neutral-700 mb-4"
+            onChange={(e) => setSearch(e.target.value.toLowerCase())}
+          />
           <h2 className="text-xs font-medium text-neutral-300">Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
             <div className="space-y-1">
@@ -228,19 +194,19 @@ export default function LossFeedPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRows.map((row) => (
+                {filtered.map((row) => (
                   <tr
                     key={row.id}
                     className="border-b border-neutral-800 hover:bg-neutral-900/60"
                   >
                     <td className="px-3 py-2 align-top text-neutral-200 whitespace-nowrap">
-                      {new Date(row.timestamp).toLocaleString()}
+                      row.timestamp
                     </td>
                     <td className="px-3 py-2 align-top text-neutral-200">
-                      {row.eventType}
+                      {row.event}
                     </td>
                     <td className="px-3 py-2 align-top text-neutral-200">
-                      {row.severityScore}
+                      {row.severity}
                     </td>
                     <td className="px-3 py-2 align-top text-neutral-200">
                       {row.zip}
@@ -255,7 +221,7 @@ export default function LossFeedPage() {
                       {(row.claimProbability * 100).toFixed(0)}%
                     </td>
                     <td className="px-3 py-2 align-top text-neutral-200">
-                      {row.internalPriority}
+                      {row.priorityScore}
                     </td>
                     <td className="px-3 py-2 align-top text-neutral-200">
                       {row.status}
@@ -270,7 +236,7 @@ export default function LossFeedPage() {
                     </td>
                   </tr>
                 ))}
-                {filteredRows.length === 0 && (
+                {filtered.length === 0 && (
                   <tr>
                     <td
                       colSpan={10}

@@ -1,8 +1,40 @@
 import NavBar from '../components/NavBar';
-
-const mockZipData = ['77024', '60611', '94105', '10013', '30327', '85054'];
+import { lossEvents, routingQueue } from '@/app/lib/mockData';
 
 export default function DashboardPage() {
+  const dailyLossCount = lossEvents.length;
+
+  const eventsByCategory = lossEvents.reduce<Record<string, number>>(
+    (acc, e) => {
+      acc[e.event] = (acc[e.event] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
+  const highValueZips = Array.from(
+    new Set(
+      lossEvents
+        .filter((e) => e.incomeBand.includes('7') || e.incomeBand.includes('8'))
+        .map((e) => e.zip),
+    ),
+  ).slice(0, 6);
+
+  const topBySeverity = [...lossEvents]
+    .sort((a, b) => b.severity - a.severity)
+    .slice(0, 10);
+
+  const totalLeads = routingQueue.length;
+  const convertedLeads = routingQueue.filter((r) => r.status === 'Converted')
+    .length;
+  const qualifiedLeads = routingQueue.filter(
+    (r) => r.status === 'Qualified' || r.status === 'Converted',
+  ).length;
+  const qualifiedPct =
+    totalLeads === 0 ? 0 : Math.round((qualifiedLeads / totalLeads) * 100);
+  const convertedPct =
+    totalLeads === 0 ? 0 : Math.round((convertedLeads / totalLeads) * 100);
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50">
       <NavBar />
@@ -23,7 +55,9 @@ export default function DashboardPage() {
                 <h2 className="text-xs font-medium text-neutral-300">
                   Daily loss count
                 </h2>
-                <p className="text-2xl font-semibold text-neutral-50">482</p>
+                <p className="text-2xl font-semibold text-neutral-50">
+                  {dailyLossCount}
+                </p>
                 <p className="text-[11px] text-neutral-500">
                   Events ingested in the last 24 hours across all sources.
                 </p>
@@ -34,7 +68,7 @@ export default function DashboardPage() {
                   High-value ZIPs hit in last 24h
                 </h2>
                 <ul className="mt-1 space-y-1 text-xs text-neutral-200">
-                  {mockZipData.map((zip) => (
+                  {highValueZips.map((zip) => (
                     <li
                       key={zip}
                       className="flex items-center justify-between text-neutral-300"
@@ -55,22 +89,17 @@ export default function DashboardPage() {
                   Events by category (24h)
                 </h2>
                 <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Hail</dt>
-                    <dd className="text-neutral-100 font-medium">172</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Wind</dt>
-                    <dd className="text-neutral-100 font-medium">139</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Fire</dt>
-                    <dd className="text-neutral-100 font-medium">28</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Freeze</dt>
-                    <dd className="text-neutral-100 font-medium">34</dd>
-                  </div>
+                  {['Hail', 'Wind', 'Fire', 'Freeze'].map((label) => (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between"
+                    >
+                      <dt className="text-neutral-400">{label}</dt>
+                      <dd className="text-neutral-100 font-medium">
+                        {eventsByCategory[label] || 0}
+                      </dd>
+                    </div>
+                  ))}
                 </dl>
               </div>
 
@@ -81,11 +110,15 @@ export default function DashboardPage() {
                 <dl className="mt-1 space-y-1 text-xs">
                   <div className="flex items-center justify-between">
                     <dt className="text-neutral-400">Qualified</dt>
-                    <dd className="text-neutral-100 font-medium">63%</dd>
+                    <dd className="text-neutral-100 font-medium">
+                      {qualifiedPct}%
+                    </dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="text-neutral-400">Converted</dt>
-                    <dd className="text-neutral-100 font-medium">28%</dd>
+                    <dd className="text-neutral-100 font-medium">
+                      {convertedPct}%
+                    </dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="text-neutral-400">Avg. time to contact</dt>
@@ -97,6 +130,17 @@ export default function DashboardPage() {
           </div>
 
           <aside className="space-y-4">
+            <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+              <h2 className="text-lg font-semibold mb-2">
+                Recent Loss Activity Map
+              </h2>
+              <img
+                src="/map-placeholder.jpg"
+                alt="Map Placeholder"
+                className="w-full rounded-md opacity-80"
+              />
+            </div>
+
             <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
               <h2 className="text-xs font-medium text-neutral-300">
                 Quick navigation
@@ -141,17 +185,16 @@ export default function DashboardPage() {
                 Top 10 loss events by severity
               </h2>
               <ol className="mt-2 space-y-1.5 text-xs text-neutral-200">
-                {Array.from({ length: 10 }).map((_, idx) => (
+                {topBySeverity.map((event) => (
                   <li
-                    key={idx}
+                    key={event.id}
                     className="flex items-center justify-between text-neutral-300"
                   >
                     <span>
-                      Hail event #{idx + 1}{' '}
-                      <span className="text-neutral-500">• ZIP 7500{idx}</span>
+                      {event.event} • {event.zip}
                     </span>
                     <span className="text-[11px] text-neutral-400">
-                      sev {(90 - idx * 3).toString()}
+                      sev {event.severity}
                     </span>
                   </li>
                 ))}

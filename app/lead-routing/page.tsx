@@ -2,8 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import NavBar from '../components/NavBar';
+import { lossEvents, propertyIntel, routingQueue } from '@/app/lib/mockData';
 
-type LeadStatus = 'Unassigned' | 'Assigned' | 'Contacted' | 'Qualified' | 'Converted';
+type LeadStatus =
+  | 'Unassigned'
+  | 'Assigned'
+  | 'Contacted'
+  | 'Qualified'
+  | 'Converted';
 
 type Lead = {
   id: string;
@@ -15,27 +21,6 @@ type Lead = {
   status: LeadStatus;
 };
 
-const LEADS: Lead[] = [
-  {
-    id: '1',
-    address: '1234 Example Ln, Sample City, 77024',
-    event: 'Hail',
-    severity: 92,
-    claimProbability: 0.82,
-    assigned: false,
-    status: 'Unassigned',
-  },
-  {
-    id: '2',
-    address: '56 Windcrest Dr, Metro, 30327',
-    event: 'Wind',
-    severity: 81,
-    claimProbability: 0.71,
-    assigned: true,
-    status: 'Assigned',
-  },
-];
-
 export default function LeadRoutingPage() {
   const [activeStatus, setActiveStatus] = useState<LeadStatus | 'All'>('All');
   const [panelLeadId, setPanelLeadId] = useState<string | null>(null);
@@ -43,11 +28,27 @@ export default function LeadRoutingPage() {
   const [priority, setPriority] = useState<string>('High');
   const [notes, setNotes] = useState<string>('');
 
+  const leads: Lead[] = useMemo(() => {
+    return routingQueue.map((entry) => {
+      const event = lossEvents.find((e) => e.id === entry.id);
+      const intel = propertyIntel[entry.id];
+      return {
+        id: entry.id,
+        address: intel?.address ?? 'Unknown address',
+        event: event?.event ?? 'Unknown',
+        severity: event?.severity ?? 0,
+        claimProbability: event?.claimProbability ?? 0,
+        assigned: entry.status !== 'Unassigned',
+        status: entry.status,
+      };
+    });
+  }, []);
+
   const filteredLeads = useMemo(() => {
-    return LEADS.filter((lead) =>
+    return leads.filter((lead) =>
       activeStatus === 'All' ? true : lead.status === activeStatus,
     );
-  }, [activeStatus]);
+  }, [activeStatus, leads]);
 
   const openPanel = (id: string) => {
     setPanelLeadId(id);
@@ -175,12 +176,16 @@ export default function LeadRoutingPage() {
             </table>
           </div>
 
-          {panelLeadId && (
-            <div className="fixed inset-y-0 right-0 w-full max-w-md border-l border-neutral-800 bg-neutral-950 shadow-xl">
-              <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-3">
-                <h3 className="text-xs font-semibold text-neutral-50">
-                  Assign lead
-                </h3>
+          <div
+            className={`fixed top-0 right-0 h-full w-80 bg-neutral-900 border-l border-neutral-700 transition-transform duration-300 ${
+              panelLeadId ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            <div className="p-4 space-y-4 text-xs">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold text-lg text-neutral-50">
+                  Assign Lead
+                </h2>
                 <button
                   type="button"
                   onClick={closePanel}
@@ -189,65 +194,44 @@ export default function LeadRoutingPage() {
                   Close
                 </button>
               </div>
-              <div className="px-4 py-3 space-y-3 text-xs">
-                <div>
-                  <p className="text-neutral-400">Lead ID</p>
-                  <p className="text-neutral-100">{panelLeadId}</p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-neutral-400">
-                    Assign to
-                  </label>
-                  <select
-                    value={assigneeType}
-                    onChange={(e) => setAssigneeType(e.target.value)}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="internal-ops">Internal ops</option>
-                    <option value="adjuster-partner">Adjuster partner</option>
-                    <option value="contractor-partner">Contractor partner</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Priority level</label>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Notes</label>
-                  <textarea
-                    rows={4}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full resize-none rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={closePanel}
-                    className="rounded-sm border border-neutral-700 bg-neutral-950 px-3 py-1.5 text-[11px] font-medium text-neutral-100 hover:border-neutral-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    className="rounded-sm border border-neutral-700 bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-900 hover:bg-white"
-                  >
-                    Save assignment
-                  </button>
-                </div>
-              </div>
+              {panelLeadId && (
+                <p className="text-[11px] text-neutral-400">
+                  Lead ID: <span className="text-neutral-100">{panelLeadId}</span>
+                </p>
+              )}
+              <select
+                className="w-full p-2 bg-neutral-800 border border-neutral-700 rounded-md"
+                value={assigneeType}
+                onChange={(e) => setAssigneeType(e.target.value)}
+              >
+                <option value="internal-ops">Internal Ops</option>
+                <option value="adjuster-partner">Adjuster Partner</option>
+                <option value="contractor-partner">Contractor Partner</option>
+              </select>
+              <select
+                className="w-full p-2 bg-neutral-800 border border-neutral-700 rounded-md text-xs text-neutral-100"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option value="High">High priority</option>
+                <option value="Medium">Medium priority</option>
+                <option value="Low">Low priority</option>
+              </select>
+              <textarea
+                className="w-full h-32 p-2 bg-neutral-800 border border-neutral-700 rounded-md"
+                placeholder="Notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={handleSave}
+                className="w-full p-2 bg-blue-600 rounded-md hover:bg-blue-500 text-xs font-medium text-neutral-50"
+              >
+                Save
+              </button>
             </div>
-          )}
+          </div>
         </section>
       </main>
     </div>

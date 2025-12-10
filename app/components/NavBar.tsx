@@ -16,7 +16,7 @@ export default function NavBar() {
 
   return (
     <header className="border-b border-neutral-800 bg-neutral-950">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-7 w-7 rounded-sm bg-neutral-800 flex items-center justify-center text-xs font-semibold text-neutral-100">
             LL
@@ -30,21 +30,20 @@ export default function NavBar() {
             </span>
           </div>
         </div>
-        <nav className="flex items-center gap-6 text-xs font-medium text-neutral-300">
+        <nav className="flex items-center gap-2 text-xs font-medium text-neutral-300 border-x border-neutral-800 px-3 py-1 rounded-md bg-neutral-900/40">
           {navItems.map((item) => {
+            const isPropertyGroup =
+              item.href.startsWith('/property') &&
+              pathname?.startsWith('/property');
             const active =
-              pathname === item.href ||
-              (item.href.startsWith('/property') &&
-                pathname?.startsWith('/property'));
+              pathname === item.href || isPropertyGroup;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={
-                  active
-                    ? 'text-neutral-50 border-b border-neutral-200 pb-0.5'
-                    : 'text-neutral-400 hover:text-neutral-100'
-                }
+                className={`p-2 rounded-md hover:bg-neutral-800 ${
+                  active ? 'bg-neutral-800 text-white' : 'text-neutral-300'
+                }`}
               >
                 {item.label}
               </Link>
