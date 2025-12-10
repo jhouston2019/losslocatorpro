@@ -4,7 +4,7 @@ import NavBar from "@/app/components/NavBar";
 
 export default function InternalLayout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-900 text-neutral-100">
+    <div className="min-h-screen flex flex-col">
       <NavBar />
       <main className="flex-1 p-6">
         {children}
@@ -12,6 +12,7 @@ export default function InternalLayout({ children }) {
     </div>
   );
 }
+
 
 
 

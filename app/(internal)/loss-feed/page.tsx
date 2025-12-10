@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import NavBar from '@/app/components/NavBar';
 import { lossEvents } from '@/app/lib/mockData';
 
 export default function LossFeedPage() {
@@ -53,7 +52,6 @@ export default function LossFeedPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50">
-      <NavBar />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="border border-neutral-800 bg-neutral-900 px-4 py-3">
           <h1 className="text-sm font-semibold text-neutral-50">

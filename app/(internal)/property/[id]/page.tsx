@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import NavBar from '@/app/components/NavBar';
 import { propertyIntel } from '@/app/lib/mockData';
 
 interface PropertyPageProps {
@@ -25,7 +24,6 @@ export default function PropertyPage({ params }: PropertyPageProps) {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50 relative">
-      <NavBar />
       {toastMessage && (
         <div className="fixed bottom-4 right-4 rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-100 shadow-lg">
           {toastMessage}
