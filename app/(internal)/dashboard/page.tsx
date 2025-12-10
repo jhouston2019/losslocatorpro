@@ -1,4 +1,5 @@
 import { lossEvents, routingQueue } from '@/app/lib/mockData';
+import RealMap from '@/app/components/Map';
 
 export default function DashboardPage() {
   const dailyLossCount = lossEvents.length;
@@ -118,42 +119,35 @@ export default function DashboardPage() {
           <aside className="space-y-6">
             <div className="card">
               <h2 className="card-header">Recent Loss Activity Map</h2>
-              <img
-                src="/map-placeholder.jpg"
-                alt="Map Placeholder"
-                className="rounded-lg opacity-90 border border-slateglass-700 w-full"
-              />
+              <RealMap />
             </div>
 
-            <div className="space-y-3">
-              <a
-                href="/loss-feed"
-                className="card hover:bg-sapphire-700/60 transition"
-              >
-                <p className="text-sm font-semibold text-white">Loss feed</p>
-                <p className="subtext mt-1">
-                  Full table of ingested events and scoring.
-                </p>
+            <div className="space-y-4">
+              <a href="/loss-feed">
+                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
+                  <p className="text-sm font-semibold text-white">Loss feed</p>
+                  <p className="subtext mt-1">
+                    Full table of ingested events and scoring.
+                  </p>
+                </div>
               </a>
-              <a
-                href="/lead-routing"
-                className="card hover:bg-sapphire-700/60 transition"
-              >
-                <p className="text-sm font-semibold text-white">Lead routing</p>
-                <p className="subtext mt-1">
-                  Assign and track outreach on high-priority leads.
-                </p>
+              <a href="/lead-routing">
+                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
+                  <p className="text-sm font-semibold text-white">Lead routing</p>
+                  <p className="subtext mt-1">
+                    Assign and track outreach on high-priority leads.
+                  </p>
+                </div>
               </a>
-              <a
-                href="/property/12345"
-                className="card hover:bg-sapphire-700/60 transition"
-              >
-                <p className="text-sm font-semibold text-white">
-                  Property lookup
-                </p>
-                <p className="subtext mt-1">
-                  Inspect property-level events and risk layers.
-                </p>
+              <a href="/property/12345">
+                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
+                  <p className="text-sm font-semibold text-white">
+                    Property lookup
+                  </p>
+                  <p className="subtext mt-1">
+                    Inspect property-level events and risk layers.
+                  </p>
+                </div>
               </a>
             </div>
 
