@@ -1,10 +1,10 @@
 export default function AdminPage() {
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen text-neutral-200">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        <header className="border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <h1 className="text-sm font-semibold text-neutral-50">Admin</h1>
-          <p className="mt-1 text-xs text-neutral-400">
+        <header className="card">
+          <h1 className="card-header">Admin</h1>
+          <p className="subtext">
             Internal configuration for users, event sources, thresholds, and
             automation.
           </p>
@@ -12,11 +12,9 @@ export default function AdminPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div className="space-y-3">
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
-                User management
-              </h2>
-              <p className="text-neutral-400">
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">User management</h2>
+              <p className="subtext">
                 Manage internal console access and roles.
               </p>
               <div className="space-y-2">
@@ -24,11 +22,11 @@ export default function AdminPage() {
                   <input
                     type="email"
                     placeholder="new.user@internal"
-                    className="flex-1 rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    className="flex-1 rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
                   />
                   <button
                     type="button"
-                    className="rounded-sm border border-neutral-700 bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-900 hover:bg-white"
+                    className="rounded-md border border-slateglass-700 bg-sapphire-700 px-3 py-1.5 text-[11px] font-medium text-neutral-100 hover:bg-sapphire-600"
                   >
                     Invite
                   </button>
@@ -36,15 +34,15 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">
                 Event source configuration
               </h2>
-              <p className="text-neutral-400">
+              <p className="subtext">
                 Configure incoming hail, wind, fire, freeze and precipitation
                 feeds.
               </p>
-              <ul className="mt-1 space-y-1 text-neutral-300">
+              <ul className="mt-1 space-y-1 text-neutral-300 text-sm">
                 <li>• Hail + wind grid (enabled)</li>
                 <li>• Fire incidents (enabled)</li>
                 <li>• Freeze &amp; precipitation (enabled)</li>
@@ -53,11 +51,9 @@ export default function AdminPage() {
           </div>
 
           <div className="space-y-3">
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
-                API keys
-              </h2>
-              <p className="text-neutral-400">
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">API keys</h2>
+              <p className="subtext">
                 Rotate keys used by ingestion jobs and internal tools.
               </p>
               <div className="space-y-2">
@@ -65,11 +61,11 @@ export default function AdminPage() {
                   <input
                     type="text"
                     placeholder="Create new API key"
-                    className="flex-1 rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    className="flex-1 rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
                   />
                   <button
                     type="button"
-                    className="rounded-sm border border-neutral-700 bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-900 hover:bg-white"
+                    className="rounded-md border border-slateglass-700 bg-sapphire-700 px-3 py-1.5 text-[11px] font-medium text-neutral-100 hover:bg-sapphire-600"
                   >
                     Generate
                   </button>
@@ -77,11 +73,9 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
-                Threshold settings
-              </h2>
-              <p className="text-neutral-400">
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">Threshold settings</h2>
+              <p className="subtext">
                 Configure scoring thresholds for claim probability and routing
                 rules.
               </p>
@@ -93,7 +87,7 @@ export default function AdminPage() {
                   <input
                     type="number"
                     defaultValue={70}
-                    className="mt-1 w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    className="mt-1 w-full rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
                   />
                 </div>
                 <div>
@@ -103,17 +97,17 @@ export default function AdminPage() {
                   <input
                     type="number"
                     defaultValue={75}
-                    className="mt-1 w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    className="mt-1 w-full rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">
                 Trigger rules &amp; exports
               </h2>
-              <p className="text-neutral-400">
+              <p className="subtext">
                 Configure trigger logic and downstream export automation.
               </p>
               <div className="space-y-1">

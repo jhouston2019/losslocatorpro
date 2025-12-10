@@ -64,18 +64,16 @@ export default function LeadRoutingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen text-neutral-200">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        <header className="border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <h1 className="text-sm font-semibold text-neutral-50">
-            Lead routing
-          </h1>
-          <p className="mt-1 text-xs text-neutral-400">
+        <header className="card">
+          <h1 className="card-header">Lead routing</h1>
+          <p className="subtext">
             Internal workflow engine for assigning outreach and follow-up.
           </p>
         </header>
 
-        <section className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-3">
+        <section className="card space-y-3">
           <h2 className="text-xs font-medium text-neutral-300">Status filters</h2>
           <div className="flex flex-wrap gap-2 text-[11px]">
             {(['All', 'Unassigned', 'Assigned', 'Contacted', 'Qualified', 'Converted'] as const).map(
@@ -97,7 +95,7 @@ export default function LeadRoutingPage() {
           </div>
         </section>
 
-        <section className="relative border border-neutral-800 bg-neutral-900">
+        <section className="relative card p-0">
           <div className="px-4 py-2 border-b border-neutral-800 flex items-center justify-between">
             <h2 className="text-xs font-medium text-neutral-300">
               Unrouted leads
@@ -107,49 +105,49 @@ export default function LeadRoutingPage() {
             </span>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-xs text-neutral-100">
-              <thead className="bg-neutral-950 border-b border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-sapphire-800 text-neutral-300 border-b border-slateglass-700">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Property address
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">Event</th>
-                  <th className="px-3 py-2 text-left font-medium">Severity</th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">Event</th>
+                  <th className="px-4 py-3 text-left font-semibold">Severity</th>
+                  <th className="px-4 py-3 text-left font-semibold">
                     Claim probability
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Assigned?
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">Status</th>
-                  <th className="px-3 py-2 text-left font-medium">Action</th>
+                  <th className="px-4 py-3 text-left font-semibold">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slateglass-800">
                 {filteredLeads.map((lead) => (
                   <tr
                     key={lead.id}
-                    className="border-b border-neutral-800 hover:bg-neutral-900/70"
+                    className="hover:bg-sapphire-700/40 transition"
                   >
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-white">
                       {lead.address}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {lead.event}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {lead.severity}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {(lead.claimProbability * 100).toFixed(0)}%
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {lead.assigned ? 'Y' : 'N'}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {lead.status}
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="px-4 py-3 align-top">
                       <button
                         type="button"
                         onClick={() => openPanel(lead.id)}
@@ -175,11 +173,11 @@ export default function LeadRoutingPage() {
           </div>
 
           <div
-            className={`fixed top-0 right-0 h-full w-80 bg-neutral-900 border-l border-neutral-700 transition-transform duration-300 ${
+            className={`fixed top-0 right-0 h-full w-96 bg-sapphire-800 shadow-card border-l border-slateglass-700 p-6 transition-transform duration-300 ${
               panelLeadId ? 'translate-x-0' : 'translate-x-full'
             }`}
           >
-            <div className="p-4 space-y-4 text-xs">
+            <div className="space-y-4 text-xs">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-lg text-neutral-50">
                   Assign Lead
@@ -198,7 +196,7 @@ export default function LeadRoutingPage() {
                 </p>
               )}
               <select
-                className="w-full p-2 bg-neutral-800 border border-neutral-700 rounded-md"
+                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100"
                 value={assigneeType}
                 onChange={(e) => setAssigneeType(e.target.value)}
               >
@@ -207,7 +205,7 @@ export default function LeadRoutingPage() {
                 <option value="contractor-partner">Contractor Partner</option>
               </select>
               <select
-                className="w-full p-2 bg-neutral-800 border border-neutral-700 rounded-md text-xs text-neutral-100"
+                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-xs text-neutral-100"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
               >
@@ -216,7 +214,7 @@ export default function LeadRoutingPage() {
                 <option value="Low">Low priority</option>
               </select>
               <textarea
-                className="w-full h-32 p-2 bg-neutral-800 border border-neutral-700 rounded-md"
+                className="w-full h-32 p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100"
                 placeholder="Notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

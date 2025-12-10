@@ -23,45 +23,41 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50 relative">
+    <div className="min-h-screen text-neutral-200 relative">
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs text-neutral-100 shadow-lg">
+        <div className="fixed bottom-4 right-4 rounded-md bg-sapphire-800 border border-slateglass-700 px-3 py-2 text-xs text-neutral-100 shadow-card">
           {toastMessage}
         </div>
       )}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        <header className="flex items-center justify-between gap-3 border border-neutral-800 bg-neutral-900 px-4 py-3">
+        <header className="card flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-sm font-semibold text-neutral-50">
-              Property intelligence
-            </h1>
-            <p className="mt-1 text-xs text-neutral-400">
+            <h1 className="card-header">Property intelligence</h1>
+            <p className="subtext">
               Internal claim decision interface for property ID {id}.
             </p>
           </div>
           <div className="flex gap-2">
             <a
               href="/lead-routing"
-              className="rounded-sm border border-neutral-700 bg-neutral-950 px-3 py-1.5 text-xs font-medium text-neutral-100 hover:border-neutral-500"
+              className="px-3 py-2 bg-sapphire-700 border border-slateglass-700 rounded-lg text-xs font-medium text-neutral-100 hover:bg-sapphire-600"
             >
               Route lead
             </a>
             <button
               type="button"
               onClick={handleExport}
-              className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md hover:bg-neutral-700 text-xs font-medium text-neutral-100"
+              className="px-3 py-2 bg-sapphire-700 border border-slateglass-700 rounded-lg hover:bg-sapphire-600 text-xs font-medium text-neutral-100"
             >
               Export property report (PDF)
             </button>
           </div>
         </header>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-3">
-              <h2 className="text-xs font-medium text-neutral-300">
-                Property summary
-              </h2>
+            <div className="card space-y-3">
+              <h2 className="card-header">Property summary</h2>
               <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-xs">
                 <div>
                   <dt className="text-neutral-400">Address</dt>
@@ -100,20 +96,18 @@ export default function PropertyPage({ params }: PropertyPageProps) {
               </dl>
             </div>
 
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3">
-              <h2 className="text-xs font-medium text-neutral-300">
-                Event timeline
-              </h2>
-              <div className="mt-3 space-y-4 text-xs">
+            <div className="card">
+              <h2 className="card-header">Event timeline</h2>
+              <div className="mt-3 space-y-2 text-xs">
                 {intel?.timeline ? (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {intel.timeline.map((t, i) => (
                       <div
                         key={i}
-                        className="border-l-2 border-neutral-600 pl-4"
+                        className="border-l-2 border-slateglass-700 pl-4 py-2"
                       >
-                        <p className="text-neutral-400">{t.date}</p>
-                        <p className="font-semibold">
+                        <p className="text-neutral-400 text-sm">{t.date}</p>
+                        <p className="text-white font-semibold">
                           {t.type} • {t.value}
                         </p>
                       </div>
@@ -129,15 +123,13 @@ export default function PropertyPage({ params }: PropertyPageProps) {
           </div>
 
           <aside className="space-y-4">
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-2">
-              <h2 className="text-xs font-medium text-neutral-300">
-                Risk layers
-              </h2>
+            <div className="card space-y-2">
+              <h2 className="card-header">Risk layers</h2>
               <div className="flex flex-wrap gap-2 text-xs">
                 {intel?.risks?.map((risk) => (
                   <span
                     key={risk}
-                    className="px-2 py-1 bg-neutral-800 border border-neutral-700 rounded-md text-sm"
+                    className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
                   >
                     {risk}
                   </span>
@@ -147,10 +139,8 @@ export default function PropertyPage({ params }: PropertyPageProps) {
               </div>
             </div>
 
-            <div className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-3">
-              <h2 className="text-xs font-medium text-neutral-300">
-                Internal assessment
-              </h2>
+            <div className="card space-y-3">
+              <h2 className="card-header">Internal assessment</h2>
               <form className="space-y-2 text-xs">
                 <div className="flex items-center justify-between gap-2">
                   <label className="text-neutral-400">
@@ -184,11 +174,11 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                   <label className="text-neutral-400">
                     Recommended actions
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
                     {intel?.recommendedActions?.map((action) => (
                       <span
                         key={action}
-                        className="px-2 py-1 bg-neutral-800 border border-neutral-700 rounded-md text-sm"
+                        className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
                       >
                         {action}
                       </span>
@@ -206,7 +196,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                   <input
                     type="text"
                     placeholder="Preferred vendor / notes"
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                   />
                 </div>
                 <button

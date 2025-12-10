@@ -51,19 +51,17 @@ export default function LossFeedPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen text-neutral-200">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        <header className="border border-neutral-800 bg-neutral-900 px-4 py-3">
-          <h1 className="text-sm font-semibold text-neutral-50">
-            Loss feed (internal)
-          </h1>
-          <p className="mt-1 text-xs text-neutral-400">
+        <header className="card">
+          <h1 className="card-header">Loss feed (internal)</h1>
+          <p className="subtext">
             Data-dense view of ingested loss events, scoring, and routing
             status.
           </p>
         </header>
 
-        <section className="border border-neutral-800 bg-neutral-900 px-4 py-3 space-y-3">
+        <section className="card space-y-3">
           <input
             type="text"
             placeholder="Search address, ZIP, event..."
@@ -146,7 +144,7 @@ export default function LossFeedPage() {
           </div>
         </section>
 
-        <section className="border border-neutral-800 bg-neutral-900">
+        <section className="card p-0">
           <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800">
             <h2 className="text-xs font-medium text-neutral-300">
               Loss feed results
@@ -160,71 +158,71 @@ export default function LossFeedPage() {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-xs text-neutral-100">
-              <thead className="bg-neutral-950 sticky top-0 border-b border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-sapphire-800 text-neutral-300 border-b border-slateglass-700 sticky top-0">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Timestamp
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Event type
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Severity score
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">ZIP</th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">ZIP</th>
+                  <th className="px-4 py-3 text-left font-semibold">
                     Income band
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Property type
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Claim probability
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">
                     Internal priority
                   </th>
-                  <th className="px-3 py-2 text-left font-medium">Status</th>
-                  <th className="px-3 py-2 text-left font-medium">
+                  <th className="px-4 py-3 text-left font-semibold">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold">
                     Property
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slateglass-800">
                 {filtered.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-neutral-800 hover:bg-neutral-900/60"
+                    className="hover:bg-sapphire-700/40 transition"
                   >
-                    <td className="px-3 py-2 align-top text-neutral-200 whitespace-nowrap">
-                      row.timestamp
+                    <td className="px-4 py-3 align-top text-white whitespace-nowrap">
+                      {row.timestamp}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-white">
                       {row.event}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.severity}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.zip}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.incomeBand}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.propertyType}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {(row.claimProbability * 100).toFixed(0)}%
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.priorityScore}
                     </td>
-                    <td className="px-3 py-2 align-top text-neutral-200">
+                    <td className="px-4 py-3 align-top text-neutral-200">
                       {row.status}
                     </td>
-                    <td className="px-3 py-2 align-top">
+                    <td className="px-4 py-3 align-top">
                       <a
                         href={`/property/${row.id}`}
                         className="text-[11px] font-medium text-neutral-100 underline-offset-2 hover:underline"
