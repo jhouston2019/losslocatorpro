@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import NavBar from '@/app/components/Navbar';
+import NavBar from '@/app/components/NavBar';
 import { propertyIntel } from '@/app/lib/mockData';
 
 interface PropertyPageProps {

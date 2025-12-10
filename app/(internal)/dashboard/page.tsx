@@ -1,4 +1,4 @@
-import NavBar from '@/app/components/Navbar';
+import NavBar from '@/app/components/NavBar';
 import { lossEvents, routingQueue } from '@/app/lib/mockData';
 
 export default function DashboardPage() {
