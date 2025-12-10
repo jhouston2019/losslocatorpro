@@ -19,11 +19,14 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.11",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.10",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.33",
-    "@netlify/plugin-nextjs": "^5.8.1"
+    "@netlify/plugin-nextjs": "^5.8.1",
+    "typescript": "^5.6.3"
   }
 }
 
