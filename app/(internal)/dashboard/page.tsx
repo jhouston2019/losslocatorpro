@@ -1,5 +1,9 @@
+import dynamic from 'next/dynamic';
 import { lossEvents, routingQueue } from '@/app/lib/mockData';
-import RealMap from '@/app/components/Map';
+
+const RealMap = dynamic(() => import('@/app/components/Map'), {
+  ssr: false,
+});
 
 export default function DashboardPage() {
   const dailyLossCount = lossEvents.length;
