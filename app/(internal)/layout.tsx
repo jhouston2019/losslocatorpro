@@ -1,6 +1,6 @@
 "use client";
 
-import NavBar from "@/app/components/NavBar";
+import NavBar from "@/app/components/Navbar";
 
 export default function InternalLayout({ children }) {
   return (
@@ -12,5 +12,6 @@ export default function InternalLayout({ children }) {
     </div>
   );
 }
+
 
 

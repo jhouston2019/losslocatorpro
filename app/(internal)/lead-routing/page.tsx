@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/Navbar';
 import { lossEvents, propertyIntel, routingQueue } from '@/app/lib/mockData';
 
 type LeadStatus =
