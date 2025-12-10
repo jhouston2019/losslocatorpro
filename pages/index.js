@@ -164,8 +164,8 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-50">
-              Claim Intelligence Dashboard
+              <h1 className="text-xl sm:text-2xl font-semibold text-slate-50">
+              Loss Locator Pro Dashboard
             </h1>
             <p className="mt-1 text-sm text-slate-400">
               Search properties, monitor weather and catastrophe events, and
@@ -446,7 +446,7 @@ export default function DashboardPage() {
 
             <div className="ci-card p-4 sm:p-5">
               <h2 className="text-sm font-semibold text-slate-900 mb-2">
-                How Claim Intel prioritizes risk
+                How Loss Locator Pro prioritizes risk
               </h2>
               <ul className="space-y-2 text-xs text-slate-600">
                 <li>

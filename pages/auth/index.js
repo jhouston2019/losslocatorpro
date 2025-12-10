@@ -226,7 +226,7 @@ export default function AuthAndBillingPage() {
         {/* Auth section */}
         <section className="ci-card p-5 sm:p-6">
           <h1 className="text-lg sm:text-xl font-semibold text-slate-900">
-            Access Claim Intel
+            Access Loss Locator Pro
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Sign in to your workspace or create a new account to get started.
@@ -355,7 +355,7 @@ export default function AuthAndBillingPage() {
         <section className="space-y-4">
           <div className="ci-card p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-slate-900">
-              Choose your Claim Intel plan
+              Choose your Loss Locator Pro plan
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               Start with the plan that fits your claims operation. You can

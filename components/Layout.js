@@ -22,7 +22,7 @@ export default function Layout({ user, children }) {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-white tracking-tight">
-                Claim Intel
+                Loss Locator Pro
               </span>
               <span className="text-xs text-slate-200/80">
                 Claim Intelligence Dashboard
