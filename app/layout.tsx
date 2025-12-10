@@ -1,22 +1,18 @@
+'use client';
+
 import '../styles/globals.css';
-import React from 'react';
-import DemoTag from './components/DemoTag';
+import { usePathname } from 'next/navigation';
+import NavBar from '@/app/components/NavBar';
 
-export const metadata = {
-  title: 'Loss Locator Pro — Internal Console',
-  description: 'Internal loss intelligence and lead routing console',
-};
+export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const hideNav = pathname === '/login';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
   return (
     <html lang="en">
-      <body className="bg-neutral-950 text-neutral-50 antialiased">
-        <DemoTag />
-        {children}
+      <body className="bg-neutral-900 text-neutral-100">
+        {!hideNav && <NavBar />}
+        <main className={hideNav ? 'w-full' : 'ml-64 p-6'}>{children}</main>
       </body>
     </html>
   );

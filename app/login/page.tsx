@@ -1,76 +1,45 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    setSubmitting(true);
-    // Placeholder internal auth; replace with real check as needed.
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 400);
+    router.push('/dashboard');
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-md border border-neutral-800 bg-neutral-900 px-6 py-7 shadow-sm">
-        <h1 className="text-sm font-semibold text-neutral-50">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-900">
+      <div className="bg-neutral-800 p-8 rounded-lg border border-neutral-700 shadow-lg w-full max-w-sm">
+        <h1 className="text-xl font-semibold mb-4 text-white">
           Loss Locator Pro — Internal Console
         </h1>
-        <p className="mt-1 text-xs text-neutral-400">
+
+        <p className="text-sm text-neutral-400 mb-6">
           Internal access only. Use your assigned credentials.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <div className="space-y-1">
-            <label
-              htmlFor="email"
-              className="block text-xs font-medium text-neutral-300"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-300"
-              placeholder="analyst@internal"
-            />
-          </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500"
+          />
 
-          <div className="space-y-1">
-            <label
-              htmlFor="password"
-              className="block text-xs font-medium text-neutral-300"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-300"
-              placeholder="••••••••"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500"
+          />
 
           <button
             type="submit"
-            disabled={submitting}
-            className="mt-2 inline-flex w-full items-center justify-center rounded-sm bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-900 hover:bg-white disabled:opacity-60"
+            className="w-full p-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white"
           >
-            {submitting ? 'Signing in…' : 'Sign in'}
+            Sign In
           </button>
         </form>
       </div>
