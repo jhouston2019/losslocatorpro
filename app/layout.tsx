@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: 'Loss Locator Pro',
   description: 'Internal Console',
