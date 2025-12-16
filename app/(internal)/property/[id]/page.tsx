@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { propertyIntel } from '@/app/lib/mockData';
+import { getPropertyById, parseTimeline, createRoutingQueueEntry } from '@/lib/data';
+import type { Property, TimelineEntry } from '@/lib/database.types';
 
 interface PropertyPageProps {
   params: { id: string };
@@ -9,8 +10,25 @@ interface PropertyPageProps {
 
 export default function PropertyPage({ params }: PropertyPageProps) {
   const { id } = params;
-  const intel = propertyIntel[id];
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadProperty() {
+      try {
+        setLoading(true);
+        const data = await getPropertyById(id);
+        setProperty(data);
+      } catch (error) {
+        console.error('Error loading property:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProperty();
+  }, [id]);
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -21,6 +39,43 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   const handleExport = () => {
     setToastMessage('PDF export coming soon');
   };
+
+  const handleRouteLead = async () => {
+    try {
+      await createRoutingQueueEntry(id);
+      setToastMessage('Lead created successfully');
+    } catch (error: any) {
+      console.error('Error creating lead:', error);
+      const message = error?.message || 'Failed to create lead';
+      setToastMessage(message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading property...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Property not found</p>
+          <a href="/dashboard" className="text-blue-400 hover:underline">
+            Return to Dashboard
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const timeline = parseTimeline(property.timeline);
 
   return (
     <div className="min-h-screen text-neutral-200 relative">
@@ -38,12 +93,12 @@ export default function PropertyPage({ params }: PropertyPageProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <a
-              href="/lead-routing"
+            <button
+              onClick={handleRouteLead}
               className="px-3 py-2 bg-sapphire-700 border border-slateglass-700 rounded-lg text-xs font-medium text-neutral-100 hover:bg-sapphire-600"
             >
               Route lead
-            </a>
+            </button>
             <button
               type="button"
               onClick={handleExport}
@@ -62,36 +117,30 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                 <div>
                   <dt className="text-neutral-400">Address</dt>
                   <dd className="text-neutral-100">
-                    {intel?.address ?? 'Unknown property'}
+                    {property.address}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-400">ZIP income band</dt>
                   <dd className="text-neutral-100">
-                    {intel?.zipIncome ?? '—'}
+                    {property.zip_income_band ?? '—'}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-400">Property type</dt>
                   <dd className="text-neutral-100">
-                    {intel?.propertyType ?? '—'}
+                    {property.property_type ?? '—'}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-neutral-400">Estimated roof age</dt>
                   <dd className="text-neutral-100">
-                    {intel?.roofAge ?? '—'}
+                    {property.roof_age ?? '—'}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-neutral-400">Current claim probability</dt>
-                  <dd className="text-neutral-100">78%</dd>
-                </div>
-                <div>
-                  <dt className="text-neutral-400">
-                    Internal lead priority score
-                  </dt>
-                  <dd className="text-neutral-100">93</dd>
+                  <dt className="text-neutral-400">ZIP</dt>
+                  <dd className="text-neutral-100">{property.zip}</dd>
                 </div>
               </dl>
             </div>
@@ -99,9 +148,9 @@ export default function PropertyPage({ params }: PropertyPageProps) {
             <div className="card">
               <h2 className="card-header">Event timeline</h2>
               <div className="mt-3 space-y-2 text-xs">
-                {intel?.timeline ? (
+                {timeline.length > 0 ? (
                   <div className="space-y-2">
-                    {intel.timeline.map((t, i) => (
+                    {timeline.map((t, i) => (
                       <div
                         key={i}
                         className="border-l-2 border-slateglass-700 pl-4 py-2"
@@ -126,14 +175,16 @@ export default function PropertyPage({ params }: PropertyPageProps) {
             <div className="card space-y-2">
               <h2 className="card-header">Risk layers</h2>
               <div className="flex flex-wrap gap-2 text-xs">
-                {intel?.risks?.map((risk) => (
-                  <span
-                    key={risk}
-                    className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
-                  >
-                    {risk}
-                  </span>
-                )) || (
+                {property.risk_tags && property.risk_tags.length > 0 ? (
+                  property.risk_tags.map((risk) => (
+                    <span
+                      key={risk}
+                      className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
+                    >
+                      {risk}
+                    </span>
+                  ))
+                ) : (
                   <span className="text-neutral-500">No risk data loaded.</span>
                 )}
               </div>
@@ -175,14 +226,16 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                     Recommended actions
                   </label>
                     <div className="flex flex-wrap gap-2">
-                    {intel?.recommendedActions?.map((action) => (
-                      <span
-                        key={action}
-                        className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
-                      >
-                        {action}
-                      </span>
-                    )) || (
+                    {property.recommended_actions && property.recommended_actions.length > 0 ? (
+                      property.recommended_actions.map((action) => (
+                        <span
+                          key={action}
+                          className="px-3 py-1 bg-sapphire-700 border border-slateglass-700 rounded-lg text-sm text-neutral-200 mr-2"
+                        >
+                          {action}
+                        </span>
+                      ))
+                    ) : (
                       <span className="text-neutral-500">
                         No recommended actions configured.
                       </span>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { lossEvents, propertyIntel, routingQueue } from '@/app/lib/mockData';
+import { useMemo, useState, useEffect } from 'react';
+import { getRoutingQueueWithDetails, assignLead } from '@/lib/data';
+import type { LossEvent, Property, RoutingQueueEntry } from '@/lib/database.types';
 
 type LeadStatus =
   | 'Unassigned'
@@ -21,27 +22,54 @@ type Lead = {
 };
 
 export default function LeadRoutingPage() {
+  const [routingData, setRoutingData] = useState<
+    Array<
+      RoutingQueueEntry & {
+        loss_event?: LossEvent | null;
+        property?: Property | null;
+      }
+    >
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeStatus, setActiveStatus] = useState<LeadStatus | 'All'>('All');
   const [panelLeadId, setPanelLeadId] = useState<string | null>(null);
   const [assigneeType, setAssigneeType] = useState<string>('internal-ops');
+  const [assignedTo, setAssignedTo] = useState<string>('');
   const [priority, setPriority] = useState<string>('High');
   const [notes, setNotes] = useState<string>('');
 
+  useEffect(() => {
+    loadRoutingQueue();
+  }, []);
+
+  async function loadRoutingQueue() {
+    try {
+      setLoading(true);
+      const data = await getRoutingQueueWithDetails();
+      setRoutingData(data);
+    } catch (error) {
+      console.error('Error loading routing queue:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const leads: Lead[] = useMemo(() => {
-    return routingQueue.map((entry) => {
-      const event = lossEvents.find((e) => e.id === entry.id);
-      const intel = propertyIntel[entry.id];
+    return routingData.map((entry) => {
+      const event = entry.loss_event;
+      const property = entry.property;
       return {
         id: entry.id,
-        address: intel?.address ?? 'Unknown address',
-        event: event?.event ?? 'Unknown',
+        address: property?.address ?? 'Unknown address',
+        event: event?.event_type ?? 'Unknown',
         severity: event?.severity ?? 0,
-        claimProbability: event?.claimProbability ?? 0,
+        claimProbability: event?.claim_probability ?? 0,
         assigned: entry.status !== 'Unassigned',
         status: entry.status,
       };
     });
-  }, []);
+  }, [routingData]);
 
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) =>
@@ -58,10 +86,43 @@ export default function LeadRoutingPage() {
     setNotes('');
   };
 
-  const handleSave = () => {
-    // Placeholder internal persistence.
-    closePanel();
+  const handleSave = async () => {
+    if (!panelLeadId || !assignedTo.trim()) {
+      alert('Please enter assignee name');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await assignLead(
+        panelLeadId,
+        assignedTo,
+        assigneeType as 'internal-ops' | 'adjuster-partner' | 'contractor-partner',
+        priority as 'High' | 'Medium' | 'Low',
+        notes
+      );
+      await loadRoutingQueue();
+      alert('Lead assigned successfully');
+      closePanel();
+    } catch (error: any) {
+      console.error('Error assigning lead:', error);
+      const message = error?.message || 'Failed to assign lead. Please try again.';
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading routing queue...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-neutral-200">
@@ -195,6 +256,13 @@ export default function LeadRoutingPage() {
                   Lead ID: <span className="text-neutral-100">{panelLeadId}</span>
                 </p>
               )}
+              <input
+                type="text"
+                placeholder="Assignee name"
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100 placeholder-neutral-400"
+              />
               <select
                 className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100"
                 value={assigneeType}
@@ -222,9 +290,10 @@ export default function LeadRoutingPage() {
               <button
                 type="button"
                 onClick={handleSave}
-                className="w-full p-2 bg-blue-600 rounded-md hover:bg-blue-500 text-xs font-medium text-neutral-50"
+                disabled={saving}
+                className="w-full p-2 bg-blue-600 rounded-md hover:bg-blue-500 text-xs font-medium text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

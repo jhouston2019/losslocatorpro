@@ -1,43 +1,83 @@
+'use client';
+
 import dynamic from 'next/dynamic';
-import { lossEvents, routingQueue } from '@/app/lib/mockData';
+import { useEffect, useState } from 'react';
+import { getDashboardMetrics } from '@/lib/data';
+import type { LossEvent } from '@/lib/database.types';
 
 const RealMap = dynamic(() => import('@/app/components/Map'), {
   ssr: false,
 });
 
+interface DashboardMetrics {
+  dailyLossCount: number;
+  eventsByCategory: Record<string, number>;
+  highValueZips: string[];
+  qualifiedPct: number;
+  convertedPct: number;
+  topBySeverity: LossEvent[];
+  recentEvents: LossEvent[];
+}
+
 export default function DashboardPage() {
-  const dailyLossCount = lossEvents.length;
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const eventsByCategory = lossEvents.reduce<Record<string, number>>(
-    (acc, e) => {
-      acc[e.event] = (acc[e.event] || 0) + 1;
-      return acc;
-    },
-    {},
-  );
+  useEffect(() => {
+    async function loadMetrics() {
+      try {
+        setLoading(true);
+        const data = await getDashboardMetrics();
+        setMetrics(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading dashboard metrics:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  const highValueZips = Array.from(
-    new Set(
-      lossEvents
-        .filter((e) => e.incomeBand.includes('7') || e.incomeBand.includes('8'))
-        .map((e) => e.zip),
-    ),
-  ).slice(0, 6);
+    loadMetrics();
+  }, []);
 
-  const topBySeverity = [...lossEvents]
-    .sort((a, b) => b.severity - a.severity)
-    .slice(0, 10);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const totalLeads = routingQueue.length;
-  const convertedLeads = routingQueue.filter((r) => r.status === 'Converted')
-    .length;
-  const qualifiedLeads = routingQueue.filter(
-    (r) => r.status === 'Qualified' || r.status === 'Converted',
-  ).length;
-  const qualifiedPct =
-    totalLeads === 0 ? 0 : Math.round((qualifiedLeads / totalLeads) * 100);
-  const convertedPct =
-    totalLeads === 0 ? 0 : Math.round((convertedLeads / totalLeads) * 100);
+  if (error || !metrics) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">{error || 'Failed to load data'}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-500"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    dailyLossCount,
+    eventsByCategory,
+    highValueZips,
+    qualifiedPct,
+    convertedPct,
+    topBySeverity,
+    recentEvents,
+  } = metrics;
 
   return (
     <div className="min-h-screen text-neutral-200">
@@ -123,7 +163,7 @@ export default function DashboardPage() {
           <aside className="space-y-6">
             <div className="card">
               <h2 className="card-header">Recent Loss Activity Map</h2>
-              <RealMap />
+              <RealMap events={recentEvents} />
             </div>
 
             <div className="space-y-4">
@@ -143,7 +183,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </a>
-              <a href="/property/12345">
+              <a href="/property/10001">
                 <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
                   <p className="text-sm font-semibold text-white">
                     Property lookup
@@ -164,7 +204,7 @@ export default function DashboardPage() {
                     className="flex items-center justify-between"
                   >
                     <span>
-                      {event.event} • {event.zip}
+                      {event.event_type} • {event.zip}
                     </span>
                     <span className="text-xs text-neutral-400">
                       sev {event.severity}

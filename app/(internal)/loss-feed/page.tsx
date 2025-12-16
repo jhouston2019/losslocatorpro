@@ -1,9 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { lossEvents } from '@/app/lib/mockData';
+import { useMemo, useState, useEffect } from 'react';
+import { getLossEvents, updateLossEventStatus } from '@/lib/data';
+import type { LossEvent } from '@/lib/database.types';
 
 export default function LossFeedPage() {
+  const [events, setEvents] = useState<LossEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [eventFilter, setEventFilter] = useState<string>('all');
   const [severityThreshold, setSeverityThreshold] = useState<number>(0);
   const [incomeBandFilter, setIncomeBandFilter] = useState<string>('all');
@@ -12,35 +15,52 @@ export default function LossFeedPage() {
   const [sortDesc, setSortDesc] = useState<boolean>(true);
   const [search, setSearch] = useState('');
 
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        setLoading(true);
+        const data = await getLossEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error('Error loading loss events:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadEvents();
+  }, []);
+
   const filtered = useMemo(() => {
     const lowered = search.trim().toLowerCase();
 
-    const base = lossEvents.filter((e) => {
+    const base = events.filter((e) => {
       if (lowered) {
         const matchesSearch =
           e.zip.toLowerCase().includes(lowered) ||
-          e.event.toLowerCase().includes(lowered) ||
-          e.propertyType.toLowerCase().includes(lowered);
+          e.event_type.toLowerCase().includes(lowered) ||
+          (e.property_type || '').toLowerCase().includes(lowered);
         if (!matchesSearch) return false;
       }
-      if (eventFilter !== 'all' && e.event !== eventFilter) return false;
+      if (eventFilter !== 'all' && e.event_type !== eventFilter) return false;
       if (e.severity < severityThreshold) return false;
       if (
         incomeBandFilter !== 'all' &&
-        e.incomeBand.toLowerCase() !== incomeBandFilter
+        (e.income_band || '').toLowerCase() !== incomeBandFilter
       )
         return false;
-      if (e.claimProbability * 100 < probThreshold) return false;
+      if ((e.claim_probability || 0) * 100 < probThreshold) return false;
       if (statusFilter !== 'all' && e.status !== statusFilter) return false;
       return true;
     });
 
     return base.sort((a, b) =>
       sortDesc
-        ? b.timestamp.localeCompare(a.timestamp)
-        : a.timestamp.localeCompare(b.timestamp),
+        ? b.event_timestamp.localeCompare(a.event_timestamp)
+        : a.event_timestamp.localeCompare(b.event_timestamp),
     );
   }, [
+    events,
     search,
     eventFilter,
     severityThreshold,
@@ -49,6 +69,17 @@ export default function LossFeedPage() {
     statusFilter,
     sortDesc,
   ]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading loss events...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-neutral-200">
@@ -196,10 +227,10 @@ export default function LossFeedPage() {
                     className="hover:bg-sapphire-700/40 transition"
                   >
                     <td className="px-4 py-3 align-top text-white whitespace-nowrap">
-                      {row.timestamp}
+                      {new Date(row.event_timestamp).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 align-top text-white">
-                      {row.event}
+                      {row.event_type}
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
                       {row.severity}
@@ -208,16 +239,16 @@ export default function LossFeedPage() {
                       {row.zip}
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
-                      {row.incomeBand}
+                      {row.income_band || '—'}
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
-                      {row.propertyType}
+                      {row.property_type || '—'}
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
-                      {(row.claimProbability * 100).toFixed(0)}%
+                      {((row.claim_probability || 0) * 100).toFixed(0)}%
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
-                      {row.priorityScore}
+                      {row.priority_score || '—'}
                     </td>
                     <td className="px-4 py-3 align-top text-neutral-200">
                       {row.status}

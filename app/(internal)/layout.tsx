@@ -2,7 +2,11 @@
 
 import NavBar from "@/app/components/NavBar";
 
-export default function InternalLayout({ children }) {
+export default function InternalLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />

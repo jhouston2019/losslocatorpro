@@ -1,18 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { signOut, getCurrentUser } from '@/lib/auth';
+import type { AuthUser } from '@/lib/auth';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/loss-feed', label: 'Loss Feed' },
   { href: '/lead-routing', label: 'Lead Routing' },
-  { href: '/property/12345', label: 'Property Lookup' },
+  { href: '/property/10001', label: 'Property Lookup' },
   { href: '/admin', label: 'Admin' },
 ];
 
 export default function NavBar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser().then(setUser);
+  }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setSigningOut(false);
+    }
+  };
 
   return (
     <header className="w-full bg-sapphire-800 border-b border-slateglass-700 shadow-card">
@@ -50,12 +72,16 @@ export default function NavBar() {
           })}
         </nav>
         <div className="flex items-center gap-3 text-xs text-neutral-300 pr-4">
-          <span className="hidden sm:inline text-neutral-300">Ops user</span>
+          <span className="hidden sm:inline text-neutral-300">
+            {user?.email || 'Loading...'}
+          </span>
           <button
             type="button"
-            className="rounded-lg border border-slateglass-700 bg-sapphire-700 px-3 py-1.5 text-[11px] font-medium text-neutral-100 hover:bg-sapphire-600 shadow-card"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="rounded-lg border border-slateglass-700 bg-sapphire-700 px-3 py-1.5 text-[11px] font-medium text-neutral-100 hover:bg-sapphire-600 shadow-card disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign out
+            {signingOut ? 'Signing out...' : 'Sign out'}
           </button>
         </div>
       </div>
