@@ -11,15 +11,19 @@ export interface AuthUser {
  * Sign in with email and password
  */
 export async function signIn(email: string, password: string) {
+  console.log('[AUDIT] Auth: Sign in attempt for:', email);
+  
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
+    console.error('[AUDIT] Auth: Sign in FAILED for:', email, '- Error:', error.message);
     throw error;
   }
 
+  console.log('[AUDIT] Auth: Sign in SUCCESS for:', email, '- User ID:', data.user?.id);
   return data;
 }
 
@@ -27,10 +31,18 @@ export async function signIn(email: string, password: string) {
  * Sign out current user
  */
 export async function signOut() {
+  const session = await getSession();
+  const userId = session?.user?.id;
+  
+  console.log('[AUDIT] Auth: Sign out initiated for user:', userId);
+  
   const { error } = await supabase.auth.signOut();
   if (error) {
+    console.error('[AUDIT] Auth: Sign out FAILED -', error.message);
     throw error;
   }
+  
+  console.log('[AUDIT] Auth: Sign out SUCCESS - Session destroyed');
 }
 
 /**
@@ -50,6 +62,7 @@ export async function getSession() {
 export async function getCurrentUser(): Promise<AuthUser | null> {
   const session = await getSession();
   if (!session) {
+    console.log('[AUDIT] Auth: No active session found');
     return null;
   }
 
@@ -60,10 +73,12 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     .single();
 
   if (error) {
+    console.error('[AUDIT] Auth: Failed to fetch user data -', error.message);
     console.error('Error fetching user:', error);
     return null;
   }
 
+  console.log('[AUDIT] Auth: Current user -', data.email, '- Role:', data.role);
   return data;
 }
 

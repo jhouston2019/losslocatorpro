@@ -15,18 +15,23 @@ import type {
 async function requireRole(allowedRoles: Array<'admin' | 'ops' | 'viewer'>): Promise<void> {
   const user = await getCurrentUser();
   if (!user) {
+    console.error('[AUDIT] Role Check: FAILED - No authenticated user');
     throw new Error('Authentication required');
   }
   if (!allowedRoles.includes(user.role)) {
+    console.error('[AUDIT] Role Check: DENIED - User:', user.email, '- Role:', user.role, '- Required:', allowedRoles.join(' or '));
     throw new Error(`Insufficient permissions. Required: ${allowedRoles.join(' or ')}`);
   }
+  console.log('[AUDIT] Role Check: PASSED - User:', user.email, '- Role:', user.role, '- Required:', allowedRoles.join(' or '));
 }
 
 async function requireWriteAccess(): Promise<void> {
+  console.log('[AUDIT] Permission: Checking write access (admin/ops)');
   await requireRole(['admin', 'ops']);
 }
 
 async function requireAdminAccess(): Promise<void> {
+  console.log('[AUDIT] Permission: Checking admin access');
   await requireRole(['admin']);
 }
 
@@ -72,7 +77,10 @@ export async function updateLossEventStatus(
   id: string,
   status: 'Unreviewed' | 'Contacted' | 'Qualified' | 'Converted'
 ): Promise<void> {
+  console.log('[AUDIT] Write: updateLossEventStatus - ID:', id, '- New Status:', status);
+  
   if (!id || id.trim() === '') {
+    console.error('[AUDIT] Write: updateLossEventStatus FAILED - Invalid ID');
     throw new Error('Invalid loss event ID');
   }
   
@@ -84,9 +92,12 @@ export async function updateLossEventStatus(
     .eq('id', id);
 
   if (error) {
+    console.error('[AUDIT] Write: updateLossEventStatus FAILED -', error.message);
     console.error('Error updating loss event status:', error);
     throw error;
   }
+  
+  console.log('[AUDIT] Write: updateLossEventStatus SUCCESS - ID:', id);
 }
 
 export async function createLossEvent(
@@ -256,10 +267,14 @@ export async function assignLead(
   priority: 'High' | 'Medium' | 'Low',
   notes?: string
 ): Promise<void> {
+  console.log('[AUDIT] Write: assignLead - Queue ID:', id, '- Assignee:', assignedTo, '- Type:', assigneeType, '- Priority:', priority);
+  
   if (!id || id.trim() === '') {
+    console.error('[AUDIT] Write: assignLead FAILED - Invalid queue ID');
     throw new Error('Invalid routing queue ID');
   }
   if (!assignedTo || assignedTo.trim() === '') {
+    console.error('[AUDIT] Write: assignLead FAILED - Missing assignee name');
     throw new Error('Assignee name is required');
   }
   
@@ -277,9 +292,12 @@ export async function assignLead(
     .eq('id', id);
 
   if (error) {
+    console.error('[AUDIT] Write: assignLead FAILED -', error.message);
     console.error('Error assigning lead:', error);
     throw error;
   }
+  
+  console.log('[AUDIT] Write: assignLead SUCCESS - Queue ID:', id, '- Now assigned to:', assignedTo);
 }
 
 export async function updateLeadStatus(
@@ -303,7 +321,10 @@ export async function createRoutingQueueEntry(
   lossEventId: string,
   propertyId?: string
 ): Promise<RoutingQueueEntry> {
+  console.log('[AUDIT] Routing: createRoutingQueueEntry - Loss Event ID:', lossEventId, '- Property ID:', propertyId || 'none');
+  
   if (!lossEventId || lossEventId.trim() === '') {
+    console.error('[AUDIT] Routing: createRoutingQueueEntry FAILED - Missing loss event ID');
     throw new Error('Loss event ID is required');
   }
   
@@ -320,10 +341,12 @@ export async function createRoutingQueueEntry(
     .single();
 
   if (error) {
+    console.error('[AUDIT] Routing: createRoutingQueueEntry FAILED -', error.message);
     console.error('Error creating routing queue entry:', error);
     throw error;
   }
 
+  console.log('[AUDIT] Routing: createRoutingQueueEntry SUCCESS - New Queue ID:', data.id);
   return data;
 }
 
@@ -350,6 +373,8 @@ export async function getAdminSettings(): Promise<AdminSettings | null> {
 export async function updateAdminSettings(
   settings: Partial<AdminSettings>
 ): Promise<void> {
+  console.log('[AUDIT] Admin: updateAdminSettings - Changes:', JSON.stringify(settings));
+  
   await requireAdminAccess();
   
   // Get the first (and should be only) settings record
@@ -360,23 +385,29 @@ export async function updateAdminSettings(
     .single();
 
   if (existing) {
+    console.log('[AUDIT] Admin: Updating existing settings - ID:', existing.id);
     const { error } = await supabase
       .from('admin_settings')
       .update(settings)
       .eq('id', existing.id);
 
     if (error) {
+      console.error('[AUDIT] Admin: updateAdminSettings FAILED -', error.message);
       console.error('Error updating admin settings:', error);
       throw error;
     }
+    console.log('[AUDIT] Admin: updateAdminSettings SUCCESS');
   } else {
+    console.log('[AUDIT] Admin: Creating new settings record');
     // Create if doesn't exist
     const { error } = await supabase.from('admin_settings').insert(settings);
 
     if (error) {
+      console.error('[AUDIT] Admin: createAdminSettings FAILED -', error.message);
       console.error('Error creating admin settings:', error);
       throw error;
     }
+    console.log('[AUDIT] Admin: createAdminSettings SUCCESS');
   }
 }
 
@@ -481,16 +512,22 @@ export async function shouldAutoCreateLead(
   severity: number,
   claimProbability: number
 ): Promise<boolean> {
+  console.log('[AUDIT] Admin Logic: shouldAutoCreateLead - Severity:', severity, '- Claim Prob:', claimProbability);
+  
   const settings = await getAdminSettings();
   
   if (!settings || !settings.auto_create_lead) {
+    console.log('[AUDIT] Admin Logic: Auto-create DISABLED or no settings found');
     return false;
   }
   
   const minSeverity = settings.min_severity || 75;
   const minProb = settings.min_claim_probability || 0.7;
   
-  return severity >= minSeverity && claimProbability >= minProb;
+  const meetsThreshold = severity >= minSeverity && claimProbability >= minProb;
+  console.log('[AUDIT] Admin Logic: Thresholds - Min Severity:', minSeverity, '- Min Prob:', minProb, '- Result:', meetsThreshold ? 'PASS' : 'FAIL');
+  
+  return meetsThreshold;
 }
 
 /**
@@ -501,14 +538,19 @@ export function calculatePriorityScore(
   claimProbability: number,
   incomeBand?: string | null
 ): number {
+  console.log('[AUDIT] Admin Logic: calculatePriorityScore - Severity:', severity, '- Claim Prob:', claimProbability, '- Income Band:', incomeBand || 'none');
+  
   // Base score from severity (0-100)
   let score = Math.min(100, Math.max(0, severity));
+  let boosts: string[] = [];
   
   // Boost for high claim probability
   if (claimProbability >= 0.8) {
     score += 10;
+    boosts.push('+10 (high claim prob)');
   } else if (claimProbability >= 0.7) {
     score += 5;
+    boosts.push('+5 (medium claim prob)');
   }
   
   // Boost for high-income areas
@@ -516,12 +558,17 @@ export function calculatePriorityScore(
     const band = incomeBand.toLowerCase();
     if (band.includes('top 10') || band.includes('9') || band.includes('8')) {
       score += 10;
+      boosts.push('+10 (top income)');
     } else if (band.includes('top 25') || band.includes('7')) {
       score += 5;
+      boosts.push('+5 (high income)');
     }
   }
   
-  return Math.min(100, Math.round(score));
+  const finalScore = Math.min(100, Math.round(score));
+  console.log('[AUDIT] Admin Logic: Priority Score - Base:', severity, '- Boosts:', boosts.join(', '), '- Final:', finalScore);
+  
+  return finalScore;
 }
 
 // ============================================================================
