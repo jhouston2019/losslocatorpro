@@ -1,5 +1,6 @@
-import { supabase } from './supabaseClient';
+import { supabase as supabaseClient } from './supabaseClient';
 import { getCurrentUser } from './auth';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   LossEvent,
   Property,
@@ -8,6 +9,10 @@ import type {
   TimelineEntry,
   Database,
 } from './database.types';
+
+// Type assertion to ensure proper Database typing for build-time type checking
+// At runtime, supabaseClient is correctly typed with Database schema
+const supabase = supabaseClient as SupabaseClient<Database>;
 
 type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 type PropertyUpdate = Database['public']['Tables']['properties']['Update'];

@@ -62,37 +62,38 @@ export async function getSession() {
  * Get current user with role from users table
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
   
-  if (authError || !user) {
+  if (error || !data?.user) {
     console.log('[AUDIT] Auth: No active session found');
     return null;
   }
 
+  const user = data.user;
   console.log('[AUDIT] Auth: Fetching user profile for:', user.email);
 
-  const { data, error } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from('users')
     .select('id, email, role')
     .eq('id', user.id)
     .single<UserRow>();
 
-  if (error) {
-    console.error('[AUDIT] Auth: Failed to fetch user data -', error.message);
-    console.error('Error fetching user:', error);
+  if (userError) {
+    console.error('[AUDIT] Auth: Failed to fetch user data -', userError.message);
+    console.error('Error fetching user:', userError);
     return null;
   }
 
-  if (!data) {
+  if (!userData) {
     console.log('[AUDIT] Auth: User profile not found');
     return null;
   }
 
-  console.log('[AUDIT] Auth: Current user -', data.email, '- Role:', data.role);
+  console.log('[AUDIT] Auth: Current user -', userData.email, '- Role:', userData.role);
   return {
-    id: data.id,
-    email: data.email,
-    role: data.role,
+    id: userData.id,
+    email: userData.email,
+    role: userData.role,
   };
 }
 
