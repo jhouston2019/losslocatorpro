@@ -6,7 +6,13 @@ import type {
   RoutingQueueEntry,
   AdminSettings,
   TimelineEntry,
+  Database,
 } from './database.types';
+
+type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
+type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
+type RoutingQueueUpdate = Database['public']['Tables']['routing_queue']['Update'];
+type AdminSettingsUpdate = Database['public']['Tables']['admin_settings']['Update'];
 
 // ============================================================================
 // ROLE ENFORCEMENT
@@ -88,7 +94,7 @@ export async function updateLossEventStatus(
   
   const { error } = await supabase
     .from('loss_events')
-    .update({ status })
+    .update({ status } as LossEventUpdate)
     .eq('id', id);
 
   if (error) {

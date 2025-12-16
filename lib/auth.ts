@@ -1,11 +1,13 @@
 import { supabase } from './supabaseClient';
-import type { User } from './database.types';
+import type { Database } from './database.types';
 
 export interface AuthUser {
   id: string;
   email: string;
   role: 'ops' | 'admin' | 'viewer';
 }
+
+type UserRow = Database['public']['Tables']['users']['Row'];
 
 /**
  * Sign in with email and password
@@ -60,17 +62,20 @@ export async function getSession() {
  * Get current user with role from users table
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const session = await getSession();
-  if (!session) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !user) {
     console.log('[AUDIT] Auth: No active session found');
     return null;
   }
 
+  console.log('[AUDIT] Auth: Fetching user profile for:', user.email);
+
   const { data, error } = await supabase
     .from('users')
     .select('id, email, role')
-    .eq('id', session.user.id)
-    .single();
+    .eq('id', user.id)
+    .single<UserRow>();
 
   if (error) {
     console.error('[AUDIT] Auth: Failed to fetch user data -', error.message);
@@ -78,8 +83,17 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null;
   }
 
+  if (!data) {
+    console.log('[AUDIT] Auth: User profile not found');
+    return null;
+  }
+
   console.log('[AUDIT] Auth: Current user -', data.email, '- Role:', data.role);
-  return data;
+  return {
+    id: data.id,
+    email: data.email,
+    role: data.role,
+  };
 }
 
 /**
