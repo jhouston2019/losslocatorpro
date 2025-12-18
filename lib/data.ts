@@ -79,30 +79,25 @@ export async function getLossEventById(id: string): Promise<LossEvent | null> {
 type LossEventsUpdate = TablesUpdate<'loss_events'>;
 
 export async function updateLossEventStatus(
-  id: string,
-  status: LossEventsUpdate['status']
+  updates: LossEventsUpdate & { id: string }
 ): Promise<void> {
-  console.log('[AUDIT] Write: updateLossEventStatus - ID:', id, '- New Status:', status);
+  console.log('[AUDIT] Write: updateLossEventStatus - ID:', updates.id, '- Updates:', updates);
   
-  if (!id || id.trim() === '') {
+  if (!updates.id || updates.id.trim() === '') {
     console.error('[AUDIT] Write: updateLossEventStatus FAILED - Invalid ID');
     throw new Error('Invalid loss event ID');
   }
   
   await requireWriteAccess();
   
-  const updates: LossEventsUpdate = {};
-  
-  if (status !== undefined) {
-    updates.status = status;
-  }
+  const { id, ...rest } = updates;
   
   type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
   
   const payload: LossEventUpdate = {
-    event_type: updates.event_type,
-    status: updates.status,
-    severity: updates.severity,
+    event_type: rest.event_type,
+    status: rest.status,
+    severity: rest.severity,
   };
   
   const { error } = await supabase
