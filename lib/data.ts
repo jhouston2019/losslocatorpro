@@ -10,8 +10,11 @@ import type {
 } from './database.types';
 
 type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
+type LossEventInsert = Database['public']['Tables']['loss_events']['Insert'];
 type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
+type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
 type RoutingQueueUpdate = Database['public']['Tables']['routing_queue']['Update'];
+type RoutingQueueInsert = Database['public']['Tables']['routing_queue']['Insert'];
 type AdminSettingsUpdate = Database['public']['Tables']['admin_settings']['Update'];
 
 // ============================================================================
@@ -188,7 +191,7 @@ export async function updateProperty(
   
   const { error } = await supabase
     .from('properties')
-    .update(updates)
+    .update(updates satisfies PropertyUpdate)
     .eq('id', id);
 
   if (error) {
@@ -294,7 +297,7 @@ export async function assignLead(
       priority,
       notes,
       status: 'Assigned',
-    })
+    } satisfies RoutingQueueUpdate)
     .eq('id', id);
 
   if (error) {
@@ -314,7 +317,7 @@ export async function updateLeadStatus(
   
   const { error } = await supabase
     .from('routing_queue')
-    .update({ status })
+    .update({ status } satisfies RoutingQueueUpdate)
     .eq('id', id);
 
   if (error) {
@@ -342,7 +345,7 @@ export async function createRoutingQueueEntry(
       loss_event_id: lossEventId,
       property_id: propertyId,
       status: 'Unassigned',
-    })
+    } satisfies RoutingQueueInsert)
     .select()
     .single();
 
@@ -394,7 +397,7 @@ export async function updateAdminSettings(
     console.log('[AUDIT] Admin: Updating existing settings - ID:', existing.id);
     const { error } = await supabase
       .from('admin_settings')
-      .update(settings)
+      .update(settings satisfies AdminSettingsUpdate)
       .eq('id', existing.id);
 
     if (error) {
@@ -406,7 +409,7 @@ export async function updateAdminSettings(
   } else {
     console.log('[AUDIT] Admin: Creating new settings record');
     // Create if doesn't exist
-    const { error } = await supabase.from('admin_settings').insert(settings);
+    const { error } = await supabase.from('admin_settings').insert(settings satisfies AdminSettingsUpdate);
 
     if (error) {
       console.error('[AUDIT] Admin: createAdminSettings FAILED -', error.message);
