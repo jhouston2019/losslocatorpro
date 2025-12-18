@@ -97,17 +97,17 @@ export async function updateLossEventStatus(
     updates.status = status;
   }
   
+  type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
+  
+  const payload: LossEventUpdate = {
+    event_type: updates.event_type ?? null,
+    status: updates.status ?? null,
+    severity: updates.severity ?? null,
+  };
+  
   const { error } = await supabase
     .from('loss_events')
-    .update({
-      ...updates,
-      event_type: updates.event_type
-        ? updates.event_type.toLowerCase()
-        : undefined,
-      status: updates.status
-        ? updates.status.toLowerCase()
-        : undefined,
-    })
+    .update(payload)
     .eq('id', id);
 
   if (error) {
