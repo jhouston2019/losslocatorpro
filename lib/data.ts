@@ -8,7 +8,7 @@ import type {
   AdminSettings,
   TimelineEntry,
   Database,
-} from './database.types';
+} from '@/lib/database.types';
 
 type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 type LossEventInsert = Database['public']['Tables']['loss_events']['Insert'];
