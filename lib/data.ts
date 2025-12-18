@@ -8,7 +8,7 @@ import type {
   AdminSettings,
   TimelineEntry,
   Database,
-} from '@/lib/database.types';
+} from './database.types';
 
 // ============================================================================
 // ROLE ENFORCEMENT
