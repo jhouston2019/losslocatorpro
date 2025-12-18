@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getCurrentUser } from './auth';
+import { LossEventStatus, RoutingQueueStatus } from './types';
 import type {
   LossEvent,
   Property,
@@ -84,7 +85,7 @@ export async function getLossEventById(id: string): Promise<LossEvent | null> {
 
 export async function updateLossEventStatus(
   id: string,
-  status: 'Unreviewed' | 'Contacted' | 'Qualified' | 'Converted'
+  status: LossEventStatus
 ): Promise<void> {
   console.log('[AUDIT] Write: updateLossEventStatus - ID:', id, '- New Status:', status);
   
@@ -296,7 +297,7 @@ export async function assignLead(
       assignee_type: assigneeType,
       priority,
       notes,
-      status: 'Assigned',
+      status: RoutingQueueStatus.Assigned,
     } satisfies RoutingQueueUpdate)
     .eq('id', id);
 
@@ -311,7 +312,7 @@ export async function assignLead(
 
 export async function updateLeadStatus(
   id: string,
-  status: 'Unassigned' | 'Assigned' | 'Contacted' | 'Qualified' | 'Converted'
+  status: RoutingQueueStatus
 ): Promise<void> {
   await requireWriteAccess();
   
@@ -344,7 +345,7 @@ export async function createRoutingQueueEntry(
     .insert({
       loss_event_id: lossEventId,
       property_id: propertyId,
-      status: 'Unassigned',
+      status: RoutingQueueStatus.Unassigned,
     } satisfies RoutingQueueInsert)
     .select()
     .single();
@@ -484,10 +485,10 @@ export async function getDashboardMetrics() {
 
   const totalLeads = routingData?.length || 0;
   const convertedLeads =
-    routingData?.filter((r) => r.status === 'Converted').length || 0;
+    routingData?.filter((r) => r.status === RoutingQueueStatus.Converted).length || 0;
   const qualifiedLeads =
     routingData?.filter(
-      (r) => r.status === 'Qualified' || r.status === 'Converted'
+      (r) => r.status === RoutingQueueStatus.Qualified || r.status === RoutingQueueStatus.Converted
     ).length || 0;
 
   const qualifiedPct =
