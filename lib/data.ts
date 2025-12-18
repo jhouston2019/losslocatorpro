@@ -92,9 +92,7 @@ export async function updateLossEventStatus(
   
   const { id, ...rest } = updates;
   
-  type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
-  
-  const payload: Record<string, any> = {};
+  const payload: any = {};
   
   if (rest.event_type !== undefined) payload.event_type = rest.event_type;
   if (rest.severity !== undefined) payload.severity = rest.severity;
@@ -111,7 +109,7 @@ export async function updateLossEventStatus(
   
   const { error } = await supabase
     .from('loss_events')
-    .update(payload as LossEventUpdate)
+    .update(payload)
     .eq('id', id);
 
   if (error) {
