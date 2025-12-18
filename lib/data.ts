@@ -94,20 +94,20 @@ export async function updateLossEventStatus(
   
   type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
   
-  const payload: LossEventUpdate = {
-    event_type: rest.event_type ?? undefined,
-    severity: rest.severity ?? undefined,
-    event_timestamp: rest.event_timestamp ?? undefined,
-    zip: rest.zip ?? undefined,
-    lat: rest.lat ?? undefined,
-    lng: rest.lng ?? undefined,
-    income_band: rest.income_band ?? undefined,
-    property_type: rest.property_type ?? undefined,
-    claim_probability: rest.claim_probability ?? undefined,
-    priority_score: rest.priority_score ?? undefined,
-    status: rest.status ?? undefined,
-    updated_at: rest.updated_at ?? undefined,
-  };
+  const payload: Partial<LossEventUpdate> = {};
+  
+  if (rest.event_type !== undefined) payload.event_type = rest.event_type;
+  if (rest.severity !== undefined) payload.severity = rest.severity;
+  if (rest.event_timestamp !== undefined) payload.event_timestamp = rest.event_timestamp;
+  if (rest.zip !== undefined) payload.zip = rest.zip;
+  if (rest.lat !== undefined) payload.lat = rest.lat;
+  if (rest.lng !== undefined) payload.lng = rest.lng;
+  if (rest.income_band !== undefined) payload.income_band = rest.income_band;
+  if (rest.property_type !== undefined) payload.property_type = rest.property_type;
+  if (rest.claim_probability !== undefined) payload.claim_probability = rest.claim_probability;
+  if (rest.priority_score !== undefined) payload.priority_score = rest.priority_score;
+  if (rest.status !== undefined) payload.status = rest.status;
+  if (rest.updated_at !== undefined) payload.updated_at = rest.updated_at;
   
   const { error } = await supabase
     .from('loss_events')
