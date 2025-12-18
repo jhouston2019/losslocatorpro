@@ -98,9 +98,11 @@ export async function updateLossEvent(
     payload.severity = input.severity;
   }
 
+  const { id: _id, ...updatePayload } = payload;
+
   const { error } = await supabase
     .from('loss_events')
-    .update(payload)
+    .update(updatePayload)
     .eq('id', id);
 
   if (error) {
