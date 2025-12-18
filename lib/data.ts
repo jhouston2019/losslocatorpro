@@ -99,7 +99,15 @@ export async function updateLossEventStatus(
   
   const { error } = await supabase
     .from('loss_events')
-    .update(updates)
+    .update({
+      ...updates,
+      event_type: updates.event_type
+        ? updates.event_type.toLowerCase()
+        : undefined,
+      status: updates.status
+        ? updates.status.toLowerCase()
+        : undefined,
+    })
     .eq('id', id);
 
   if (error) {
