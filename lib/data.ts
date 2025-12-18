@@ -100,9 +100,9 @@ export async function updateLossEventStatus(
   type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
   
   const payload: LossEventUpdate = {
-    event_type: updates.event_type ?? null,
-    status: updates.status ?? null,
-    severity: updates.severity ?? null,
+    event_type: updates.event_type,
+    status: updates.status,
+    severity: updates.severity,
   };
   
   const { error } = await supabase
