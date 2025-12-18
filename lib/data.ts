@@ -10,14 +10,6 @@ import type {
   Database,
 } from '@/lib/database.types';
 
-type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
-type LossEventInsert = Database['public']['Tables']['loss_events']['Insert'];
-type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
-type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
-type RoutingQueueUpdate = Database['public']['Tables']['routing_queue']['Update'];
-type RoutingQueueInsert = Database['public']['Tables']['routing_queue']['Insert'];
-type AdminSettingsUpdate = Database['public']['Tables']['admin_settings']['Update'];
-
 // ============================================================================
 // ROLE ENFORCEMENT
 // ============================================================================
@@ -98,7 +90,9 @@ export async function updateLossEventStatus(
   
   const { error } = await supabase
     .from('loss_events')
-    .update({ status } satisfies LossEventUpdate)
+    .update(
+      { status } satisfies Database['public']['Tables']['loss_events']['Update']
+    )
     .eq('id', id);
 
   if (error) {
@@ -192,7 +186,7 @@ export async function updateProperty(
   
   const { error } = await supabase
     .from('properties')
-    .update(updates satisfies PropertyUpdate)
+    .update(updates satisfies Database['public']['Tables']['properties']['Update'])
     .eq('id', id);
 
   if (error) {
@@ -298,7 +292,7 @@ export async function assignLead(
       priority,
       notes,
       status: RoutingQueueStatus.Assigned,
-    } satisfies RoutingQueueUpdate)
+    } satisfies Database['public']['Tables']['routing_queue']['Update'])
     .eq('id', id);
 
   if (error) {
@@ -318,7 +312,7 @@ export async function updateLeadStatus(
   
   const { error } = await supabase
     .from('routing_queue')
-    .update({ status } satisfies RoutingQueueUpdate)
+    .update({ status } satisfies Database['public']['Tables']['routing_queue']['Update'])
     .eq('id', id);
 
   if (error) {
@@ -346,7 +340,7 @@ export async function createRoutingQueueEntry(
       loss_event_id: lossEventId,
       property_id: propertyId,
       status: RoutingQueueStatus.Unassigned,
-    } satisfies RoutingQueueInsert)
+    } satisfies Database['public']['Tables']['routing_queue']['Insert'])
     .select()
     .single();
 
@@ -398,7 +392,7 @@ export async function updateAdminSettings(
     console.log('[AUDIT] Admin: Updating existing settings - ID:', existing.id);
     const { error } = await supabase
       .from('admin_settings')
-      .update(settings satisfies AdminSettingsUpdate)
+      .update(settings satisfies Database['public']['Tables']['admin_settings']['Update'])
       .eq('id', existing.id);
 
     if (error) {
@@ -410,7 +404,7 @@ export async function updateAdminSettings(
   } else {
     console.log('[AUDIT] Admin: Creating new settings record');
     // Create if doesn't exist
-    const { error } = await supabase.from('admin_settings').insert(settings satisfies AdminSettingsUpdate);
+    const { error } = await supabase.from('admin_settings').insert(settings satisfies Database['public']['Tables']['admin_settings']['Update']);
 
     if (error) {
       console.error('[AUDIT] Admin: createAdminSettings FAILED -', error.message);
