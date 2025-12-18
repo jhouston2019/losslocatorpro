@@ -112,3 +112,4 @@ If issues persist on Netlify:
 2. Remove `typescript.ignoreBuildErrors` from `next.config.js`
 3. Add `// @ts-expect-error` comments to specific problematic lines in `lib/data.ts`
 
+

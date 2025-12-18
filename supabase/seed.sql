@@ -70,3 +70,4 @@ INSERT INTO routing_queue (loss_event_id, property_id, assigned_to, assignee_typ
   ('10005'::uuid, NULL, 'Contractor Partner', 'contractor-partner', 'Medium', 'Qualified', 'Awaiting contractor availability'),
   ('10012'::uuid, NULL, 'Internal Ops', 'internal-ops', 'High', 'Converted', 'Claim filed and approved');
 
+
