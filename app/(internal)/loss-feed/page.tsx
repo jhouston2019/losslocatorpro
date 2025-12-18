@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { getLossEvents, updateLossEventStatus } from '@/lib/data';
+import { getLossEvents, updateLossEvent } from '@/lib/data';
 import type { LossEvent } from '@/lib/database.types';
 
 export default function LossFeedPage() {
