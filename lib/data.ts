@@ -76,49 +76,30 @@ export async function getLossEventById(id: string): Promise<LossEvent | null> {
   return data;
 }
 
-type LossEventsUpdate = TablesUpdate<'loss_events'>;
+type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 
-export async function updateLossEventStatus(
-  updates: LossEventsUpdate & { id: string }
-): Promise<void> {
-  console.log('[AUDIT] Write: updateLossEventStatus - ID:', updates.id, '- Updates:', updates);
-  
-  if (!updates.id || updates.id.trim() === '') {
-    console.error('[AUDIT] Write: updateLossEventStatus FAILED - Invalid ID');
-    throw new Error('Invalid loss event ID');
+export async function updateLossEvent(
+  id: string,
+  input: {
+    event_type?: 'Hail' | 'Wind' | 'Fire' | 'Freeze';
+    status?: 'Unreviewed' | 'Contacted' | 'Qualified' | 'Converted';
+    severity?: number;
   }
-  
-  await requireWriteAccess();
-  
-  const { id, ...rest } = updates;
-  
-  const payload: any = {};
-  
-  if (rest.event_type !== undefined) payload.event_type = rest.event_type;
-  if (rest.severity !== undefined) payload.severity = rest.severity;
-  if (rest.event_timestamp !== undefined) payload.event_timestamp = rest.event_timestamp;
-  if (rest.zip !== undefined) payload.zip = rest.zip;
-  if (rest.lat !== undefined) payload.lat = rest.lat;
-  if (rest.lng !== undefined) payload.lng = rest.lng;
-  if (rest.income_band !== undefined) payload.income_band = rest.income_band;
-  if (rest.property_type !== undefined) payload.property_type = rest.property_type;
-  if (rest.claim_probability !== undefined) payload.claim_probability = rest.claim_probability;
-  if (rest.priority_score !== undefined) payload.priority_score = rest.priority_score;
-  if (rest.status !== undefined) payload.status = rest.status;
-  if (rest.updated_at !== undefined) payload.updated_at = rest.updated_at;
-  
+): Promise<void> {
+  const payload: LossEventUpdate = {
+    event_type: input.event_type ?? undefined,
+    status: input.status ?? undefined,
+    severity: input.severity ?? undefined,
+  };
+
   const { error } = await supabase
     .from('loss_events')
     .update(payload)
     .eq('id', id);
 
   if (error) {
-    console.error('[AUDIT] Write: updateLossEventStatus FAILED -', error.message);
-    console.error('Error updating loss event status:', error);
     throw error;
   }
-  
-  console.log('[AUDIT] Write: updateLossEventStatus SUCCESS - ID:', id);
 }
 
 export async function createLossEvent(
