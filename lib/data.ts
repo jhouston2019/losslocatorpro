@@ -91,11 +91,15 @@ export async function updateLossEventStatus(
   
   await requireWriteAccess();
   
+  const updates: LossEventsUpdate = {};
+  
+  if (status !== undefined) {
+    updates.status = status;
+  }
+  
   const { error } = await supabase
     .from('loss_events')
-    .update(
-      { status } satisfies LossEventsUpdate
-    )
+    .update(updates)
     .eq('id', id);
 
   if (error) {
