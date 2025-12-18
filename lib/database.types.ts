@@ -225,4 +225,8 @@ export type TimelineEntry = {
   date: string
 }
 
+// Helper type for table updates
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = 
+  Database['public']['Tables'][T]['Update']
+
 

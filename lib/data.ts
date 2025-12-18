@@ -8,6 +8,7 @@ import type {
   AdminSettings,
   TimelineEntry,
   Database,
+  TablesUpdate,
 } from './database.types';
 
 // ============================================================================
@@ -91,7 +92,7 @@ export async function updateLossEventStatus(
   const { error } = await supabase
     .from('loss_events')
     .update(
-      { status } as Database['public']['Tables']['loss_events']['Update']
+      { status } as TablesUpdate<'loss_events'>
     )
     .eq('id', id);
 
