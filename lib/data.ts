@@ -91,7 +91,7 @@ export async function updateLossEventStatus(
   const { error } = await supabase
     .from('loss_events')
     .update(
-      { status } satisfies Database['public']['Tables']['loss_events']['Update']
+      { status } as Database['public']['Tables']['loss_events']['Update']
     )
     .eq('id', id);
 
