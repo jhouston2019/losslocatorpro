@@ -76,9 +76,11 @@ export async function getLossEventById(id: string): Promise<LossEvent | null> {
   return data;
 }
 
+type LossEventsUpdate = TablesUpdate<'loss_events'>;
+
 export async function updateLossEventStatus(
   id: string,
-  status: LossEventStatus
+  status: LossEventsUpdate['status']
 ): Promise<void> {
   console.log('[AUDIT] Write: updateLossEventStatus - ID:', id, '- New Status:', status);
   
@@ -92,7 +94,7 @@ export async function updateLossEventStatus(
   const { error } = await supabase
     .from('loss_events')
     .update(
-      { status } as TablesUpdate<'loss_events'>
+      { status } satisfies LossEventsUpdate
     )
     .eq('id', id);
 
