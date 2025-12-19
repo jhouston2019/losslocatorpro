@@ -87,9 +87,9 @@ export async function updateLossEvent(
   }
 ): Promise<void> {
   const updatePayload: LossEventUpdate = {
-    event_type: input.event_type ?? null,
-    status: input.status ?? null,
-    severity: input.severity !== undefined ? Number(input.severity) : null,
+    event_type: input.event_type ?? undefined,
+    status: input.status ?? undefined,
+    severity: input.severity !== undefined ? Number(input.severity) : undefined,
   };
 
   const { error } = await supabase
