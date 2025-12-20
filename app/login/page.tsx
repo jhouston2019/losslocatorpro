@@ -1,25 +1,21 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, FormEvent } from 'react';
-import { signIn } from '@/lib/auth';
+import { useState } from 'react';
+import { login } from './actions';
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (formData: FormData) => {
     setError('');
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      router.push('/dashboard');
-      router.refresh();
+      const result = await login(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError('Invalid email or password. Please try again.');
@@ -45,12 +41,11 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form action={handleLogin} className="space-y-4">
           <input
             type="email"
+            name="email"
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
             className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500 disabled:opacity-50"
@@ -58,9 +53,8 @@ export default function LoginPage() {
 
           <input
             type="password"
+            name="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
             className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500 disabled:opacity-50"
