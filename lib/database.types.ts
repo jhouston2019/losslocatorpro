@@ -386,3 +386,18 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// Type aliases for convenience
+export type LossEvent = Database['public']['Tables']['loss_events']['Row']
+export type Property = Database['public']['Tables']['properties']['Row']
+export type PropertyEvent = Database['public']['Tables']['property_events']['Row']
+export type RoutingQueueEntry = Database['public']['Tables']['routing_queue']['Row']
+export type AdminSettings = Database['public']['Tables']['admin_settings']['Row']
+export type TimelineEntry = {
+  timestamp: string
+  action: string
+  user?: string
+  details?: string
+}
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = 
+  Database['public']['Tables'][T]['Update']
