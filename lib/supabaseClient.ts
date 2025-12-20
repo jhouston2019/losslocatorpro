@@ -6,10 +6,5 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient<Database>(
   supabaseUrl,
-  supabaseAnonKey,
-  {
-    db: {
-      schema: 'public'
-    }
-  }
+  supabaseAnonKey
 )
