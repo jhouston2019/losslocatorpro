@@ -343,6 +343,35 @@ Once the Supabase client is properly typed:
 
 ---
 
+## UPDATE (Latest Attempt)
+
+**Commit f9c95d4:** Added schema configuration to Supabase client
+```typescript
+export const supabase = createClient<Database>(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    db: {
+      schema: 'public'
+    }
+  }
+)
+```
+
+**Result:** supabaseClient.ts itself has no type errors, but lib/data.ts still shows 24 `never` type errors.
+
+**This confirms:** The issue is NOT with the client initialization syntax. The problem is likely:
+1. The generated `lib/database.types.ts` file has structural issues
+2. There's a version mismatch between @supabase/supabase-js and the type generation
+3. The Database interface structure doesn't match what the Supabase client expects
+
+**Next Steps Required:**
+1. Regenerate `lib/database.types.ts` using official Supabase CLI
+2. Verify the Database interface structure matches Supabase v2 expectations
+3. Consider if the schema SQL and generated types are in sync
+
+---
+
 ## Contact Information for Consultant
 
 **Repository:** Loss Locator Pro
