@@ -78,6 +78,7 @@ export async function getLossEventById(id: string): Promise<LossEvent | null> {
 
 type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 
+// Update loss event fields (uses undefined to preserve existing values)
 export async function updateLossEvent(
   id: string,
   input: {
