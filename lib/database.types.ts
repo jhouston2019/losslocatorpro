@@ -394,10 +394,11 @@ export type PropertyEvent = Database['public']['Tables']['property_events']['Row
 export type RoutingQueueEntry = Database['public']['Tables']['routing_queue']['Row']
 export type AdminSettings = Database['public']['Tables']['admin_settings']['Row']
 export type TimelineEntry = {
-  timestamp: string
-  action: string
+  date: string
+  type: string
+  value: string
+  timestamp?: string
+  action?: string
   user?: string
   details?: string
 }
-export type TablesUpdate<T extends keyof Database['public']['Tables']> = 
-  Database['public']['Tables'][T]['Update']

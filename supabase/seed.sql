@@ -71,3 +71,4 @@ INSERT INTO routing_queue (loss_event_id, property_id, assigned_to, assignee_typ
   ('10012'::uuid, NULL, 'Internal Ops', 'internal-ops', 'High', 'Converted', 'Claim filed and approved');
 
 
+

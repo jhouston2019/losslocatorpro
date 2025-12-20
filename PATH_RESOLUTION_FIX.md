@@ -252,3 +252,4 @@ import type { LossEvent } from '@/lib/database.types';
 **Type Safety**: ✅ Maintained
 **Ready for Netlify**: ✅ Yes
 
+

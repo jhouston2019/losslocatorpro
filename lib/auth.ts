@@ -93,7 +93,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   return {
     id: userData.id,
     email: userData.email,
-    role: userData.role,
+    role: userData.role as 'ops' | 'admin' | 'viewer',
   };
 }
 

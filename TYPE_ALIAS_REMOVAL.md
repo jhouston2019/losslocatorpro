@@ -292,3 +292,4 @@ type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 **Robustness**: ✅ Improved
 **Ready for Netlify**: ✅ Yes
 
+

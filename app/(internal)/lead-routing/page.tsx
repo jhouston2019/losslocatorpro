@@ -66,7 +66,7 @@ export default function LeadRoutingPage() {
         severity: event?.severity ?? 0,
         claimProbability: event?.claim_probability ?? 0,
         assigned: entry.status !== 'Unassigned',
-        status: entry.status,
+        status: entry.status as LeadStatus,
       };
     });
   }, [routingData]);
