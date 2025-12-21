@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS loss_events (
   lat NUMERIC,
   lng NUMERIC,
   income_band TEXT,
-  property_type TEXT,
+  state_code TEXT,
+  property_type TEXT CHECK (property_type IN ('residential', 'commercial')),
+  is_commercial BOOLEAN GENERATED ALWAYS AS (property_type = 'commercial') STORED,
   claim_probability NUMERIC CHECK (claim_probability >= 0 AND claim_probability <= 1),
   priority_score INTEGER CHECK (priority_score >= 0 AND priority_score <= 100),
   status TEXT NOT NULL DEFAULT 'Unreviewed' CHECK (status IN ('Unreviewed', 'Contacted', 'Qualified', 'Converted')),
@@ -39,6 +41,9 @@ CREATE INDEX IF NOT EXISTS idx_loss_events_timestamp ON loss_events(event_timest
 CREATE INDEX IF NOT EXISTS idx_loss_events_status ON loss_events(status);
 CREATE INDEX IF NOT EXISTS idx_loss_events_zip ON loss_events(zip);
 CREATE INDEX IF NOT EXISTS idx_loss_events_priority ON loss_events(priority_score DESC);
+CREATE INDEX IF NOT EXISTS idx_loss_events_state_code ON loss_events(state_code);
+CREATE INDEX IF NOT EXISTS idx_loss_events_property_type ON loss_events(property_type_new);
+CREATE INDEX IF NOT EXISTS idx_loss_events_is_commercial ON loss_events(is_commercial);
 
 -- ============================================================================
 -- PROPERTIES TABLE
@@ -92,6 +97,49 @@ CREATE INDEX IF NOT EXISTS idx_routing_queue_status ON routing_queue(status);
 CREATE INDEX IF NOT EXISTS idx_routing_queue_loss_event ON routing_queue(loss_event_id);
 
 -- ============================================================================
+-- ZIP DEMOGRAPHICS TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS zip_demographics (
+  zip TEXT PRIMARY KEY,
+  state_code TEXT NOT NULL,
+  median_household_income INTEGER,
+  per_capita_income INTEGER,
+  income_percentile INTEGER CHECK (income_percentile >= 0 AND income_percentile <= 100),
+  population INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_zip_demographics_state ON zip_demographics(state_code);
+CREATE INDEX IF NOT EXISTS idx_zip_demographics_income_percentile ON zip_demographics(income_percentile DESC);
+
+-- ============================================================================
+-- LOSS PROPERTIES TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS loss_properties (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loss_id UUID REFERENCES loss_events(id) ON DELETE CASCADE,
+  address TEXT NOT NULL,
+  city TEXT,
+  state_code TEXT,
+  zip TEXT,
+  owner_name TEXT,
+  owner_type TEXT CHECK (owner_type IN ('individual', 'LLC', 'Corp', 'Trust', 'Other')),
+  mailing_address TEXT,
+  phone_primary TEXT,
+  phone_secondary TEXT,
+  phone_type TEXT CHECK (phone_type IN ('mobile', 'landline', 'voip', 'unknown')),
+  phone_confidence INTEGER CHECK (phone_confidence >= 0 AND phone_confidence <= 100),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_loss_properties_loss_id ON loss_properties(loss_id);
+CREATE INDEX IF NOT EXISTS idx_loss_properties_state ON loss_properties(state_code);
+CREATE INDEX IF NOT EXISTS idx_loss_properties_zip ON loss_properties(zip);
+CREATE INDEX IF NOT EXISTS idx_loss_properties_phone_confidence ON loss_properties(phone_confidence DESC);
+
+-- ============================================================================
 -- ADMIN SETTINGS TABLE
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS admin_settings (
@@ -100,6 +148,11 @@ CREATE TABLE IF NOT EXISTS admin_settings (
   min_claim_probability NUMERIC DEFAULT 0.70,
   auto_create_lead BOOLEAN DEFAULT true,
   nightly_export BOOLEAN DEFAULT false,
+  min_income_percentile INTEGER DEFAULT 0 CHECK (min_income_percentile >= 0 AND min_income_percentile <= 100),
+  min_phone_confidence INTEGER DEFAULT 0 CHECK (min_phone_confidence >= 0 AND min_phone_confidence <= 100),
+  enable_residential_leads BOOLEAN DEFAULT true,
+  phone_required_routing BOOLEAN DEFAULT false,
+  commercial_only_routing BOOLEAN DEFAULT false,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_by UUID REFERENCES auth.users(id)
 );
@@ -120,6 +173,8 @@ ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE property_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE routing_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE zip_demographics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loss_properties ENABLE ROW LEVEL SECURITY;
 
 -- Users table policies
 CREATE POLICY "Users can view all users" ON users
@@ -190,6 +245,26 @@ CREATE POLICY "Only admins can update admin settings" ON admin_settings
     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
   );
 
+-- ZIP demographics policies
+CREATE POLICY "Authenticated users can view zip demographics" ON zip_demographics
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Ops and Admin can manage zip demographics" ON zip_demographics
+  FOR ALL USING (
+    auth.role() = 'authenticated' AND
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('ops', 'admin'))
+  );
+
+-- Loss properties policies
+CREATE POLICY "Authenticated users can view loss properties" ON loss_properties
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Ops and Admin can manage loss properties" ON loss_properties
+  FOR ALL USING (
+    auth.role() = 'authenticated' AND
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('ops', 'admin'))
+  );
+
 -- ============================================================================
 -- FUNCTIONS & TRIGGERS
 -- ============================================================================
@@ -214,6 +289,12 @@ CREATE TRIGGER update_routing_queue_updated_at BEFORE UPDATE ON routing_queue
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_admin_settings_updated_at BEFORE UPDATE ON admin_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_zip_demographics_updated_at BEFORE UPDATE ON zip_demographics
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_loss_properties_updated_at BEFORE UPDATE ON loss_properties
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to auto-create user record on signup

@@ -21,6 +21,11 @@ export type Database = {
           min_claim_probability: number | null
           min_severity: number | null
           nightly_export: boolean | null
+          min_income_percentile: number | null
+          min_phone_confidence: number | null
+          enable_residential_leads: boolean | null
+          phone_required_routing: boolean | null
+          commercial_only_routing: boolean | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -30,6 +35,11 @@ export type Database = {
           min_claim_probability?: number | null
           min_severity?: number | null
           nightly_export?: boolean | null
+          min_income_percentile?: number | null
+          min_phone_confidence?: number | null
+          enable_residential_leads?: boolean | null
+          phone_required_routing?: boolean | null
+          commercial_only_routing?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -39,10 +49,77 @@ export type Database = {
           min_claim_probability?: number | null
           min_severity?: number | null
           nightly_export?: boolean | null
+          min_income_percentile?: number | null
+          min_phone_confidence?: number | null
+          enable_residential_leads?: boolean | null
+          phone_required_routing?: boolean | null
+          commercial_only_routing?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: []
+      }
+      loss_properties: {
+        Row: {
+          id: string
+          loss_id: string | null
+          address: string
+          city: string | null
+          state_code: string | null
+          zip: string | null
+          owner_name: string | null
+          owner_type: string | null
+          mailing_address: string | null
+          phone_primary: string | null
+          phone_secondary: string | null
+          phone_type: string | null
+          phone_confidence: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          loss_id?: string | null
+          address: string
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          owner_name?: string | null
+          owner_type?: string | null
+          mailing_address?: string | null
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          phone_type?: string | null
+          phone_confidence?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          loss_id?: string | null
+          address?: string
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          owner_name?: string | null
+          owner_type?: string | null
+          mailing_address?: string | null
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          phone_type?: string | null
+          phone_confidence?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loss_properties_loss_id_fkey"
+            columns: ["loss_id"]
+            isOneToOne: false
+            referencedRelation: "loss_events"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       loss_events: {
         Row: {
@@ -55,7 +132,9 @@ export type Database = {
           lat: number | null
           lng: number | null
           priority_score: number | null
+          state_code: string | null
           property_type: string | null
+          is_commercial: boolean | null
           severity: number
           status: string
           updated_at: string | null
@@ -71,6 +150,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           priority_score?: number | null
+          state_code?: string | null
           property_type?: string | null
           severity: number
           status?: string
@@ -87,6 +167,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           priority_score?: number | null
+          state_code?: string | null
           property_type?: string | null
           severity?: number
           status?: string
@@ -226,6 +307,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      zip_demographics: {
+        Row: {
+          zip: string
+          state_code: string
+          median_household_income: number | null
+          per_capita_income: number | null
+          income_percentile: number | null
+          population: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          zip: string
+          state_code: string
+          median_household_income?: number | null
+          per_capita_income?: number | null
+          income_percentile?: number | null
+          population?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          zip?: string
+          state_code?: string
+          median_household_income?: number | null
+          per_capita_income?: number | null
+          income_percentile?: number | null
+          population?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
@@ -393,6 +507,8 @@ export type Property = Database['public']['Tables']['properties']['Row']
 export type PropertyEvent = Database['public']['Tables']['property_events']['Row']
 export type RoutingQueueEntry = Database['public']['Tables']['routing_queue']['Row']
 export type AdminSettings = Database['public']['Tables']['admin_settings']['Row']
+export type LossProperty = Database['public']['Tables']['loss_properties']['Row']
+export type ZipDemographic = Database['public']['Tables']['zip_demographics']['Row']
 export type TimelineEntry = {
   date: string
   type: string

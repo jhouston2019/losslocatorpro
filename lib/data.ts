@@ -9,6 +9,8 @@ import type {
   TimelineEntry,
   Database,
   TablesUpdate,
+  LossProperty,
+  ZipDemographic,
 } from './database.types';
 
 // ============================================================================
@@ -418,15 +420,39 @@ export async function updateAdminSettings(
 // DASHBOARD METRICS
 // ============================================================================
 
-export async function getDashboardMetrics() {
+export interface DashboardFilters {
+  stateCode?: string;
+  minIncomePercentile?: number;
+  propertyType?: 'all' | 'residential' | 'commercial';
+  hasPhoneNumber?: boolean;
+  minPhoneConfidence?: number;
+}
+
+export async function getDashboardMetrics(filters?: DashboardFilters) {
   const now = new Date();
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  // Get loss events from last 24 hours
-  const { data: recentEvents, error: eventsError } = await supabase
+  // Build query with filters
+  let query = supabase
     .from('loss_events')
-    .select('*')
+    .select(`
+      *,
+      loss_property:loss_properties(*),
+      zip_demographic:zip_demographics(*)
+    `)
     .gte('event_timestamp', twentyFourHoursAgo.toISOString());
+
+  // Apply state filter
+  if (filters?.stateCode && filters.stateCode !== 'all') {
+    query = query.eq('state_code', filters.stateCode);
+  }
+
+  // Apply property type filter
+  if (filters?.propertyType && filters.propertyType !== 'all') {
+    query = query.eq('property_type', filters.propertyType);
+  }
+
+  const { data: recentEvents, error: eventsError } = await query;
 
   if (eventsError) {
     console.error('Error fetching recent events:', eventsError);
@@ -442,6 +468,42 @@ export async function getDashboardMetrics() {
     };
   }
 
+  // Apply client-side filters for joined data
+  let filteredEvents = recentEvents || [];
+
+  // Filter by income percentile (only filter if demographic data exists)
+  if (filters?.minIncomePercentile && filters.minIncomePercentile > 0) {
+    filteredEvents = filteredEvents.filter((e: any) => {
+      const demographic = Array.isArray(e.zip_demographic) ? e.zip_demographic[0] : e.zip_demographic;
+      // Keep events without demographic data (don't filter them out)
+      if (!demographic || demographic.income_percentile === null || demographic.income_percentile === undefined) {
+        return false; // Only show events with demographic data when filter is active
+      }
+      return demographic.income_percentile >= filters.minIncomePercentile!;
+    });
+  }
+
+  // Filter by phone number availability
+  if (filters?.hasPhoneNumber !== undefined) {
+    filteredEvents = filteredEvents.filter((e: any) => {
+      const property = Array.isArray(e.loss_property) ? e.loss_property[0] : e.loss_property;
+      const hasPhone = !!property?.phone_primary;
+      return filters.hasPhoneNumber ? hasPhone : !hasPhone;
+    });
+  }
+
+  // Filter by phone confidence (only filter if phone data exists)
+  if (filters?.minPhoneConfidence && filters.minPhoneConfidence > 0) {
+    filteredEvents = filteredEvents.filter((e: any) => {
+      const property = Array.isArray(e.loss_property) ? e.loss_property[0] : e.loss_property;
+      // Only show events with phone data when filter is active
+      if (!property?.phone_primary) {
+        return false;
+      }
+      return (property.phone_confidence || 0) >= filters.minPhoneConfidence!;
+    });
+  }
+
   // Get routing queue for conversion metrics
   const { data: routingData, error: routingError } = await supabase
     .from('routing_queue')
@@ -453,26 +515,25 @@ export async function getDashboardMetrics() {
   }
 
   // Calculate metrics
-  const dailyLossCount = recentEvents?.length || 0;
+  const dailyLossCount = filteredEvents.length;
 
-  const eventsByCategory = (recentEvents || []).reduce<Record<string, number>>(
-    (acc, e) => {
+  const eventsByCategory = filteredEvents.reduce<Record<string, number>>(
+    (acc, e: any) => {
       acc[e.event_type] = (acc[e.event_type] || 0) + 1;
       return acc;
     },
     {}
   );
 
+  // Get high value ZIPs using new income percentile data
   const highValueZips = Array.from(
     new Set(
-      (recentEvents || [])
-        .filter(
-          (e) =>
-            e.income_band?.includes('7') ||
-            e.income_band?.includes('8') ||
-            e.income_band?.includes('9')
-        )
-        .map((e) => e.zip)
+      filteredEvents
+        .filter((e: any) => {
+          const demographic = Array.isArray(e.zip_demographic) ? e.zip_demographic[0] : e.zip_demographic;
+          return demographic?.income_percentile >= 90;
+        })
+        .map((e: any) => e.zip)
     )
   ).slice(0, 6);
 
@@ -489,8 +550,8 @@ export async function getDashboardMetrics() {
   const convertedPct =
     totalLeads === 0 ? 0 : Math.round((convertedLeads / totalLeads) * 100);
 
-  const topBySeverity = [...(recentEvents || [])]
-    .sort((a, b) => (b.severity || 0) - (a.severity || 0))
+  const topBySeverity = [...filteredEvents]
+    .sort((a: any, b: any) => (b.severity || 0) - (a.severity || 0))
     .slice(0, 10);
 
   return {
@@ -500,7 +561,7 @@ export async function getDashboardMetrics() {
     qualifiedPct,
     convertedPct,
     topBySeverity,
-    recentEvents: recentEvents || [],
+    recentEvents: filteredEvents,
   };
 }
 
@@ -571,6 +632,350 @@ export function calculatePriorityScore(
   const finalScore = Math.min(100, Math.round(score));
   console.log('[AUDIT] Admin Logic: Priority Score - Base:', severity, '- Boosts:', boosts.join(', '), '- Final:', finalScore);
   
+  return finalScore;
+}
+
+// ============================================================================
+// ZIP DEMOGRAPHICS
+// ============================================================================
+
+export async function getZipDemographics(): Promise<ZipDemographic[]> {
+  const { data, error } = await supabase
+    .from('zip_demographics')
+    .select('*')
+    .order('state_code', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching zip demographics:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getZipDemographicByZip(zip: string): Promise<ZipDemographic | null> {
+  if (!zip || zip.trim() === '') {
+    console.warn('getZipDemographicByZip called with invalid ZIP');
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('zip_demographics')
+    .select('*')
+    .eq('zip', zip)
+    .single();
+
+  if (error) {
+    console.error('Error fetching zip demographic:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function getZipDemographicsByState(stateCode: string): Promise<ZipDemographic[]> {
+  const { data, error } = await supabase
+    .from('zip_demographics')
+    .select('*')
+    .eq('state_code', stateCode)
+    .order('income_percentile', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching zip demographics by state:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getStatesFromDemographics(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('zip_demographics')
+    .select('state_code')
+    .order('state_code', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching states:', error);
+    return [];
+  }
+
+  // Get unique states
+  const uniqueStates = Array.from(new Set(data?.map(d => d.state_code) || []));
+  return uniqueStates;
+}
+
+// ============================================================================
+// LOSS PROPERTIES
+// ============================================================================
+
+export async function getLossProperties(): Promise<LossProperty[]> {
+  const { data, error } = await supabase
+    .from('loss_properties')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching loss properties:', error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+export async function getLossPropertyByLossId(lossId: string): Promise<LossProperty | null> {
+  if (!lossId || lossId.trim() === '') {
+    console.warn('getLossPropertyByLossId called with invalid loss ID');
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('loss_properties')
+    .select('*')
+    .eq('loss_id', lossId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching loss property:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function createLossProperty(
+  property: Omit<LossProperty, 'id' | 'created_at' | 'updated_at'>
+): Promise<LossProperty> {
+  await requireWriteAccess();
+
+  const { data, error } = await supabase
+    .from('loss_properties')
+    .insert(property)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating loss property:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateLossProperty(
+  id: string,
+  updates: Partial<LossProperty>
+): Promise<void> {
+  await requireWriteAccess();
+
+  const { error } = await supabase
+    .from('loss_properties')
+    .update(updates satisfies Database['public']['Tables']['loss_properties']['Update'])
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating loss property:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// ENRICHED LOSS EVENTS (WITH JOINS)
+// ============================================================================
+
+export type EnrichedLossEvent = LossEvent & {
+  loss_property?: LossProperty | null;
+  zip_demographic?: ZipDemographic | null;
+};
+
+/**
+ * Get loss events with enrichment data (property info, demographics)
+ * This is the main function for displaying enriched loss data in the UI
+ */
+export async function getLossEventsWithEnrichment(): Promise<EnrichedLossEvent[]> {
+  const { data, error } = await supabase
+    .from('loss_events')
+    .select(`
+      *,
+      loss_property:loss_properties(*),
+      zip_demographic:zip_demographics(*)
+    `)
+    .order('event_timestamp', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching enriched loss events:', error);
+    throw error;
+  }
+
+  return (data || []) as EnrichedLossEvent[];
+}
+
+/**
+ * Get a single enriched loss event by ID
+ */
+export async function getEnrichedLossEventById(id: string): Promise<EnrichedLossEvent | null> {
+  if (!id || id.trim() === '') {
+    console.warn('getEnrichedLossEventById called with invalid ID');
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('loss_events')
+    .select(`
+      *,
+      loss_property:loss_properties(*),
+      zip_demographic:zip_demographics(*)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching enriched loss event:', error);
+    return null;
+  }
+
+  return data as EnrichedLossEvent;
+}
+
+// ============================================================================
+// ENHANCED ROUTING LOGIC
+// ============================================================================
+
+/**
+ * Check if a loss event meets enhanced routing criteria
+ */
+export async function shouldRouteEnhancedLead(
+  lossEvent: LossEvent,
+  lossProperty?: LossProperty | null,
+  zipDemographic?: ZipDemographic | null
+): Promise<{ shouldRoute: boolean; reason?: string }> {
+  console.log('[AUDIT] Enhanced Routing: Evaluating loss event', lossEvent.id);
+
+  const settings = await getAdminSettings();
+  if (!settings || !settings.auto_create_lead) {
+    console.log('[AUDIT] Enhanced Routing: Auto-create disabled');
+    return { shouldRoute: false, reason: 'Auto-create disabled' };
+  }
+
+  // Check basic thresholds (existing logic)
+  const minSeverity = settings.min_severity || 75;
+  const minProb = settings.min_claim_probability || 0.7;
+
+  if (lossEvent.severity < minSeverity) {
+    return { shouldRoute: false, reason: `Severity ${lossEvent.severity} below minimum ${minSeverity}` };
+  }
+
+  if ((lossEvent.claim_probability || 0) < minProb) {
+    return { shouldRoute: false, reason: `Claim probability below minimum ${minProb}` };
+  }
+
+  // Check commercial-only routing
+  if (settings.commercial_only_routing && !lossEvent.is_commercial) {
+    return { shouldRoute: false, reason: 'Commercial-only routing enabled, but property is not commercial' };
+  }
+
+  // Check residential leads enabled
+  if (!settings.enable_residential_leads && lossEvent.property_type === 'residential') {
+    return { shouldRoute: false, reason: 'Residential leads disabled' };
+  }
+
+  // Check phone required
+  if (settings.phone_required_routing) {
+    if (!lossProperty?.phone_primary) {
+      return { shouldRoute: false, reason: 'Phone required but not available' };
+    }
+
+    const minPhoneConfidence = settings.min_phone_confidence || 0;
+    if ((lossProperty.phone_confidence || 0) < minPhoneConfidence) {
+      return { shouldRoute: false, reason: `Phone confidence ${lossProperty.phone_confidence} below minimum ${minPhoneConfidence}` };
+    }
+  }
+
+  // Check income percentile
+  const minIncomePercentile = settings.min_income_percentile || 0;
+  if (minIncomePercentile > 0) {
+    if (!zipDemographic?.income_percentile) {
+      return { shouldRoute: false, reason: 'Income data not available' };
+    }
+
+    if (zipDemographic.income_percentile < minIncomePercentile) {
+      return { shouldRoute: false, reason: `Income percentile ${zipDemographic.income_percentile} below minimum ${minIncomePercentile}` };
+    }
+  }
+
+  console.log('[AUDIT] Enhanced Routing: All criteria met - ROUTE');
+  return { shouldRoute: true };
+}
+
+/**
+ * Calculate enhanced priority score with new factors
+ */
+export function calculateEnhancedPriorityScore(
+  severity: number,
+  claimProbability: number,
+  incomeBand?: string | null,
+  isCommercial?: boolean | null,
+  phoneConfidence?: number | null,
+  incomePercentile?: number | null
+): number {
+  console.log('[AUDIT] Enhanced Priority: Calculating score');
+
+  // Base score from severity (0-100)
+  let score = Math.min(100, Math.max(0, severity));
+  let boosts: string[] = [];
+
+  // Boost for high claim probability
+  if (claimProbability >= 0.8) {
+    score += 10;
+    boosts.push('+10 (high claim prob)');
+  } else if (claimProbability >= 0.7) {
+    score += 5;
+    boosts.push('+5 (medium claim prob)');
+  }
+
+  // Boost for high-income areas (using percentile if available)
+  if (incomePercentile !== null && incomePercentile !== undefined) {
+    if (incomePercentile >= 90) {
+      score += 15;
+      boosts.push('+15 (top 10% income)');
+    } else if (incomePercentile >= 75) {
+      score += 10;
+      boosts.push('+10 (top 25% income)');
+    } else if (incomePercentile >= 50) {
+      score += 5;
+      boosts.push('+5 (above median income)');
+    }
+  } else if (incomeBand) {
+    // Fallback to old income band logic
+    const band = incomeBand.toLowerCase();
+    if (band.includes('top 10') || band.includes('9') || band.includes('8')) {
+      score += 10;
+      boosts.push('+10 (top income band)');
+    } else if (band.includes('top 25') || band.includes('7')) {
+      score += 5;
+      boosts.push('+5 (high income band)');
+    }
+  }
+
+  // Boost for commercial properties
+  if (isCommercial) {
+    score += 10;
+    boosts.push('+10 (commercial property)');
+  }
+
+  // Boost for high phone confidence
+  if (phoneConfidence !== null && phoneConfidence !== undefined) {
+    if (phoneConfidence >= 80) {
+      score += 8;
+      boosts.push('+8 (high phone confidence)');
+    } else if (phoneConfidence >= 60) {
+      score += 4;
+      boosts.push('+4 (medium phone confidence)');
+    }
+  }
+
+  const finalScore = Math.min(100, Math.round(score));
+  console.log('[AUDIT] Enhanced Priority: Base:', severity, '- Boosts:', boosts.join(', '), '- Final:', finalScore);
+
   return finalScore;
 }
 

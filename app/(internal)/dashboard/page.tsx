@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { getDashboardMetrics } from '@/lib/data';
+import { getDashboardMetrics, getStatesFromDemographics, type DashboardFilters } from '@/lib/data';
 import type { LossEvent } from '@/lib/database.types';
 
 const RealMap = dynamic(() => import('@/app/components/Map'), {
@@ -23,12 +23,41 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  
+  // Filter states
+  const [selectedState, setSelectedState] = useState<string>('all');
+  const [minIncomePercentile, setMinIncomePercentile] = useState<number>(0);
+  const [propertyType, setPropertyType] = useState<'all' | 'residential' | 'commercial'>('all');
+  const [hasPhoneFilter, setHasPhoneFilter] = useState<string>('all');
+  const [minPhoneConfidence, setMinPhoneConfidence] = useState<number>(0);
+
+  useEffect(() => {
+    async function loadStates() {
+      try {
+        const states = await getStatesFromDemographics();
+        setAvailableStates(states);
+      } catch (err) {
+        console.error('Error loading states:', err);
+      }
+    }
+    loadStates();
+  }, []);
 
   useEffect(() => {
     async function loadMetrics() {
       try {
         setLoading(true);
-        const data = await getDashboardMetrics();
+        
+        const filters: DashboardFilters = {
+          stateCode: selectedState !== 'all' ? selectedState : undefined,
+          minIncomePercentile: minIncomePercentile > 0 ? minIncomePercentile : undefined,
+          propertyType: propertyType,
+          hasPhoneNumber: hasPhoneFilter === 'yes' ? true : hasPhoneFilter === 'no' ? false : undefined,
+          minPhoneConfidence: minPhoneConfidence > 0 ? minPhoneConfidence : undefined,
+        };
+        
+        const data = await getDashboardMetrics(filters);
         setMetrics(data);
         setError(null);
       } catch (err) {
@@ -40,7 +69,7 @@ export default function DashboardPage() {
     }
 
     loadMetrics();
-  }, []);
+  }, [selectedState, minIncomePercentile, propertyType, hasPhoneFilter, minPhoneConfidence]);
 
   if (loading) {
     return (
@@ -89,6 +118,95 @@ export default function DashboardPage() {
               <p className="subtext">
                 Daily operational snapshot for loss events and lead routing.
               </p>
+            </div>
+
+            {/* Enhanced Filters */}
+            <div className="card space-y-3">
+              <h2 className="text-xs font-medium text-neutral-300">Dashboard Filters</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="space-y-1">
+                  <label className="text-neutral-400">State</label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  >
+                    <option value="all">All States</option>
+                    {availableStates.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-neutral-400">Property Type</label>
+                  <select
+                    value={propertyType}
+                    onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-neutral-400">Has Phone Number</label>
+                  <select
+                    value={hasPhoneFilter}
+                    onChange={(e) => setHasPhoneFilter(e.target.value)}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  >
+                    <option value="all">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-neutral-400">Min Income Percentile</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={minIncomePercentile}
+                    onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    placeholder="0-100"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-neutral-400">Min Phone Confidence</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={minPhoneConfidence}
+                    onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                    placeholder="0-100"
+                  />
+                </div>
+
+                <div className="space-y-1 flex items-end">
+                  <button
+                    onClick={() => {
+                      setSelectedState('all');
+                      setMinIncomePercentile(0);
+                      setPropertyType('all');
+                      setHasPhoneFilter('all');
+                      setMinPhoneConfidence(0);
+                    }}
+                    className="w-full rounded-sm border border-neutral-700 bg-neutral-800 px-2 py-1.5 text-neutral-100 hover:bg-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

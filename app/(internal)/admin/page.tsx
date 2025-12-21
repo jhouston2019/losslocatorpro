@@ -12,6 +12,13 @@ export default function AdminPage() {
   const [minClaimProb, setMinClaimProb] = useState(70);
   const [autoCreateLead, setAutoCreateLead] = useState(true);
   const [nightlyExport, setNightlyExport] = useState(false);
+  
+  // New enrichment thresholds
+  const [minIncomePercentile, setMinIncomePercentile] = useState(0);
+  const [minPhoneConfidence, setMinPhoneConfidence] = useState(0);
+  const [enableResidentialLeads, setEnableResidentialLeads] = useState(true);
+  const [phoneRequiredRouting, setPhoneRequiredRouting] = useState(false);
+  const [commercialOnlyRouting, setCommercialOnlyRouting] = useState(false);
 
   useEffect(() => {
     async function loadSettings() {
@@ -24,6 +31,11 @@ export default function AdminPage() {
           setMinClaimProb((data.min_claim_probability || 0.7) * 100);
           setAutoCreateLead(data.auto_create_lead ?? true);
           setNightlyExport(data.nightly_export ?? false);
+          setMinIncomePercentile(data.min_income_percentile || 0);
+          setMinPhoneConfidence(data.min_phone_confidence || 0);
+          setEnableResidentialLeads(data.enable_residential_leads ?? true);
+          setPhoneRequiredRouting(data.phone_required_routing ?? false);
+          setCommercialOnlyRouting(data.commercial_only_routing ?? false);
         }
       } catch (error) {
         console.error('Error loading admin settings:', error);
@@ -43,6 +55,11 @@ export default function AdminPage() {
         min_claim_probability: minClaimProb / 100,
         auto_create_lead: autoCreateLead,
         nightly_export: nightlyExport,
+        min_income_percentile: minIncomePercentile,
+        min_phone_confidence: minPhoneConfidence,
+        enable_residential_leads: enableResidentialLeads,
+        phone_required_routing: phoneRequiredRouting,
+        commercial_only_routing: commercialOnlyRouting,
       });
       alert('Settings saved successfully. Changes will apply to new events.');
     } catch (error: any) {
@@ -172,6 +189,32 @@ export default function AdminPage() {
                     className="mt-1 w-full rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
                   />
                 </div>
+                <div>
+                  <label className="text-neutral-400">
+                    Minimum income percentile
+                  </label>
+                  <input
+                    type="number"
+                    value={minIncomePercentile}
+                    onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
+                    min={0}
+                    max={100}
+                    className="mt-1 w-full rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-neutral-400">
+                    Minimum phone confidence
+                  </label>
+                  <input
+                    type="number"
+                    value={minPhoneConfidence}
+                    onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
+                    min={0}
+                    max={100}
+                    className="mt-1 w-full rounded-md border border-slateglass-700 bg-sapphire-900 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-sapphire-600"
+                  />
+                </div>
               </div>
               <button
                 onClick={handleSaveSettings}
@@ -208,6 +251,44 @@ export default function AdminPage() {
                     className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
                   />
                   Nightly export of converted leads to CRM.
+                </label>
+              </div>
+            </div>
+
+            <div className="card space-y-2">
+              <h2 className="card-header text-base">
+                Enhanced Routing Rules
+              </h2>
+              <p className="subtext">
+                Configure property type and phone enrichment routing rules.
+              </p>
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={enableResidentialLeads}
+                    onChange={(e) => setEnableResidentialLeads(e.target.checked)}
+                    className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
+                  />
+                  Enable residential leads for routing.
+                </label>
+                <label className="flex items-center gap-2 text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={commercialOnlyRouting}
+                    onChange={(e) => setCommercialOnlyRouting(e.target.checked)}
+                    className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
+                  />
+                  Only route commercial properties.
+                </label>
+                <label className="flex items-center gap-2 text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={phoneRequiredRouting}
+                    onChange={(e) => setPhoneRequiredRouting(e.target.checked)}
+                    className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
+                  />
+                  Require phone number with confidence &gt;= {minPhoneConfidence}% for routing.
                 </label>
               </div>
             </div>
