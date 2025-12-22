@@ -8,5 +8,24 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# ============================================================================
+# SCHEDULED FUNCTIONS - Live Data Ingestion Pipeline
+# ============================================================================
+
+[[functions]]
+  directory = "netlify/functions"
+
+# PHASE A: Run NOAA ingestion every 15 minutes
+[functions."ingest-noaa-events"]
+  schedule = "*/15 * * * *"
+
+# PHASE B: Run property enrichment every hour
+[functions."enrich-properties"]
+  schedule = "0 * * * *"
+
+# PHASE C: Run phone enrichment every 2 hours
+[functions."enrich-phones"]
+  schedule = "0 */2 * * *"
+
 
 

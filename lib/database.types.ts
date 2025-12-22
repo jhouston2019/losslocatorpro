@@ -139,6 +139,10 @@ export type Database = {
           status: string
           updated_at: string | null
           zip: string
+          source: string | null
+          source_event_id: string | null
+          latitude: number | null
+          longitude: number | null
         }
         Insert: {
           claim_probability?: number | null
@@ -156,6 +160,10 @@ export type Database = {
           status?: string
           updated_at?: string | null
           zip: string
+          source?: string | null
+          source_event_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
         }
         Update: {
           claim_probability?: number | null
@@ -173,6 +181,10 @@ export type Database = {
           status?: string
           updated_at?: string | null
           zip?: string
+          source?: string | null
+          source_event_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
         }
         Relationships: []
       }

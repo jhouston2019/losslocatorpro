@@ -32,6 +32,10 @@ CREATE TABLE IF NOT EXISTS loss_events (
   claim_probability NUMERIC CHECK (claim_probability >= 0 AND claim_probability <= 1),
   priority_score INTEGER CHECK (priority_score >= 0 AND priority_score <= 100),
   status TEXT NOT NULL DEFAULT 'Unreviewed' CHECK (status IN ('Unreviewed', 'Contacted', 'Qualified', 'Converted')),
+  source TEXT,
+  source_event_id TEXT,
+  latitude NUMERIC,
+  longitude NUMERIC,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -44,6 +48,14 @@ CREATE INDEX IF NOT EXISTS idx_loss_events_priority ON loss_events(priority_scor
 CREATE INDEX IF NOT EXISTS idx_loss_events_state_code ON loss_events(state_code);
 CREATE INDEX IF NOT EXISTS idx_loss_events_property_type ON loss_events(property_type_new);
 CREATE INDEX IF NOT EXISTS idx_loss_events_is_commercial ON loss_events(is_commercial);
+
+-- Indexes for ingestion and duplicate prevention
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_source_event ON loss_events (source, source_event_id)
+  WHERE source IS NOT NULL AND source_event_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_loss_events_source ON loss_events(source)
+  WHERE source IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_loss_events_coordinates ON loss_events(latitude, longitude)
+  WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 
 -- ============================================================================
 -- PROPERTIES TABLE
