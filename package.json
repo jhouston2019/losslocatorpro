@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@netlify/functions": "^2.8.2",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.49.1",
     "leaflet": "^1.9.4",
