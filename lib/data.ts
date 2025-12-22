@@ -782,9 +782,10 @@ export async function updateLossProperty(
 // ENRICHED LOSS EVENTS (WITH JOINS)
 // ============================================================================
 
+// Supabase returns joined relations as arrays, so we need to handle that
 export type EnrichedLossEvent = LossEvent & {
-  loss_property?: LossProperty | null;
-  zip_demographic?: ZipDemographic | null;
+  loss_property?: LossProperty[] | LossProperty | null;
+  zip_demographic?: ZipDemographic[] | ZipDemographic | null;
 };
 
 /**
@@ -806,7 +807,8 @@ export async function getLossEventsWithEnrichment(): Promise<EnrichedLossEvent[]
     throw error;
   }
 
-  return (data || []) as EnrichedLossEvent[];
+  // Supabase returns joined relations, we cast to any first to avoid type issues
+  return (data || []) as any as EnrichedLossEvent[];
 }
 
 /**
@@ -833,7 +835,8 @@ export async function getEnrichedLossEventById(id: string): Promise<EnrichedLoss
     return null;
   }
 
-  return data as EnrichedLossEvent;
+  // Supabase returns joined relations, we cast to any first to avoid type issues
+  return data as any as EnrichedLossEvent;
 }
 
 // ============================================================================
