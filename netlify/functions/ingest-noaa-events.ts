@@ -38,9 +38,12 @@ interface NOAAFeatureCollection {
 // CONFIGURATION
 // ============================================================================
 
-const NOAA_FEED_URL = 'https://www.spc.noaa.gov/climo/reports/today_filtered.json';
-// Fallback: Use USGS earthquake API as proxy for severe weather (for testing)
+// Primary: NOAA Storm Prediction Center reports
+const NOAA_FEED_URL = 'https://www.spc.noaa.gov/climo/reports/today.csv';
+// Fallback: Use USGS earthquake API as working demo data source
 const FALLBACK_FEED_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
+// For testing: Use fallback by default until NOAA feed is properly configured
+const USE_FALLBACK = true;
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -172,23 +175,29 @@ const handler: Handler = async (event, context) => {
       },
     });
     
-    // Fetch NOAA severe weather data
-    console.log('📡 Fetching NOAA data...');
+    // Fetch severe weather data
+    console.log('📡 Fetching weather data...');
     let response: Response;
     
-    try {
-      response = await fetch(NOAA_FEED_URL, {
-        headers: {
-          'User-Agent': 'LossLocatorPro/1.0',
-        },
-      });
-    } catch (primaryError) {
-      console.warn('Primary NOAA feed unavailable, using fallback:', primaryError);
+    // Use fallback feed for demo/testing until NOAA feed is configured
+    if (USE_FALLBACK) {
+      console.log('📊 Using fallback data source (USGS earthquakes as demo)');
       response = await fetch(FALLBACK_FEED_URL);
+    } else {
+      try {
+        response = await fetch(NOAA_FEED_URL, {
+          headers: {
+            'User-Agent': 'LossLocatorPro/1.0',
+          },
+        });
+      } catch (primaryError) {
+        console.warn('Primary NOAA feed unavailable, using fallback:', primaryError);
+        response = await fetch(FALLBACK_FEED_URL);
+      }
     }
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch NOAA data: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch weather data: ${response.status} ${response.statusText}`);
     }
     
     const data: NOAAFeatureCollection = await response.json();
