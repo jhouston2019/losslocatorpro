@@ -308,10 +308,18 @@ async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]>
   const allReports: StormReport[] = [];
   
   // NOAA SPC provides separate CSV files for hail, wind, and tornado
+  // Try both date-specific and "today/yesterday" formats
+  const isToday = dateStr === generateDateArray(1)[0];
+  const isYesterday = dateStr === generateDateArray(2)[1];
+  
+  let filePrefix = dateStr;
+  if (isToday) filePrefix = 'today';
+  else if (isYesterday) filePrefix = 'yesterday';
+  
   const reportTypes = [
-    { type: 'hail', file: `${dateStr}_rpts_hail.csv` },
-    { type: 'wind', file: `${dateStr}_rpts_wind.csv` },
-    { type: 'tornado', file: `${dateStr}_rpts_torn.csv` },
+    { type: 'hail', file: `${filePrefix}_rpts_hail.csv` },
+    { type: 'wind', file: `${filePrefix}_rpts_wind.csv` },
+    { type: 'tornado', file: `${filePrefix}_rpts_torn.csv` },
   ];
   
   for (const { type, file } of reportTypes) {
@@ -319,15 +327,26 @@ async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]>
       const url = `${NOAA_STORM_REPORTS_BASE}${file}`;
       console.log(`🔍 Fetching ${type} reports: ${url}`);
       
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         headers: {
           'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
         },
       });
       
+      // If using shortcut failed, try actual date format
+      if (!response.ok && (isToday || isYesterday)) {
+        const altUrl = `${NOAA_STORM_REPORTS_BASE}${dateStr}_rpts_${type === 'tornado' ? 'torn' : type}.csv`;
+        console.log(`   🔄 Trying alternate format: ${altUrl}`);
+        response = await fetch(altUrl, {
+          headers: {
+            'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
+          },
+        });
+      }
+      
       if (!response.ok) {
         if (response.status === 404) {
-          console.log(`   📅 No ${type} reports for ${dateStr}`);
+          console.log(`   📅 No ${type} reports for ${dateStr} (404)`);
         } else {
           console.log(`   ⚠️ ${type} returned ${response.status}`);
         }
