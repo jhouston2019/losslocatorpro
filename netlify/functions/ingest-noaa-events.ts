@@ -60,12 +60,10 @@ interface NOAAFeatureCollection {
 // ============================================================================
 
 // NOAA Storm Prediction Center - Storm Reports (hail, wind, tornado)
-const NOAA_STORM_REPORTS_TODAY = 'https://www.spc.noaa.gov/climo/reports/today.json';
-const NOAA_STORM_REPORTS_YESTERDAY = 'https://www.spc.noaa.gov/climo/reports/yesterday.json';
-// Fallback: Use USGS earthquake API if NOAA is down
-const FALLBACK_FEED_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
-// Use real storm reports
-const USE_FALLBACK = false;
+const NOAA_STORM_REPORTS_BASE = 'https://www.spc.noaa.gov/climo/reports/';
+// Backfill configuration
+const DAYS_TO_BACKFILL = 7; // Last 7 days including today
+const MAX_REPORTS_PER_RUN = 500; // Safety limit
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -183,27 +181,61 @@ function generateSourceEventId(report: StormReport): string {
 }
 
 /**
- * Check if we should backfill yesterday's data
- * Returns true on first run (no NOAA events in database)
+ * Generate array of dates for backfill (last N days)
  */
-async function shouldBackfill(supabase: any): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from('loss_events')
-      .select('id')
-      .eq('source', 'NOAA')
-      .limit(1);
+function generateDateArray(days: number): string[] {
+  const dates: string[] = [];
+  const today = new Date();
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
     
-    if (error) {
-      console.warn('Error checking for backfill:', error);
-      return false;
+    // Format as YYYYMMDD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    dates.push(`${year}${month}${day}`);
+  }
+  
+  return dates;
+}
+
+/**
+ * Fetch storm reports for a specific date
+ */
+async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]> {
+  try {
+    const url = `${NOAA_STORM_REPORTS_BASE}${dateStr}.json`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
+        'Accept': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`📅 No reports for ${dateStr} (404)`);
+        return [];
+      }
+      console.warn(`⚠️ ${dateStr} returned ${response.status}`);
+      return [];
     }
     
-    // If no NOAA events exist, backfill yesterday
-    return !data || data.length === 0;
+    const data: StormReportsResponse = await response.json();
+    
+    if (data.reports && Array.isArray(data.reports)) {
+      console.log(`📊 ${dateStr}: ${data.reports.length} reports`);
+      return data.reports;
+    }
+    
+    return [];
   } catch (error) {
-    console.error('Backfill check error:', error);
-    return false;
+    console.error(`❌ Error fetching ${dateStr}:`, error);
+    return [];
   }
 }
 
@@ -235,47 +267,29 @@ const handler: Handler = async (event, context) => {
       },
     });
     
-    // Check if we should backfill yesterday's data
-    const needsBackfill = await shouldBackfill(supabase);
-    const urlsToFetch = needsBackfill 
-      ? [NOAA_STORM_REPORTS_YESTERDAY, NOAA_STORM_REPORTS_TODAY]
-      : [NOAA_STORM_REPORTS_TODAY];
-    
-    if (needsBackfill) {
-      console.log('🔄 First run detected - backfilling yesterday + today');
-    }
+    // Generate date array for last 7 days
+    const dates = generateDateArray(DAYS_TO_BACKFILL);
+    console.log(`📅 Fetching storm reports for last ${DAYS_TO_BACKFILL} days...`);
     
     let allReports: StormReport[] = [];
+    let daysChecked = 0;
     
-    // Fetch storm reports
-    for (const url of urlsToFetch) {
-      try {
-        console.log(`📡 Fetching storm reports from ${url.includes('yesterday') ? 'yesterday' : 'today'}...`);
-        
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
-            'Accept': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn(`Storm reports returned ${response.status}, skipping`);
-          continue;
-        }
-        
-        const data: StormReportsResponse = await response.json();
-        
-        if (data.reports && Array.isArray(data.reports)) {
-          allReports = allReports.concat(data.reports);
-          console.log(`📊 Found ${data.reports.length} reports`);
-        }
-      } catch (fetchError) {
-        console.error(`Error fetching ${url}:`, fetchError);
+    // Fetch storm reports for each date
+    for (const dateStr of dates) {
+      daysChecked++;
+      
+      const reports = await fetchStormReportsForDate(dateStr);
+      allReports = allReports.concat(reports);
+      
+      // Safety limit: stop if we have enough reports
+      if (allReports.length >= MAX_REPORTS_PER_RUN) {
+        console.log(`⚠️ Reached max reports limit (${MAX_REPORTS_PER_RUN}), stopping fetch`);
+        allReports = allReports.slice(0, MAX_REPORTS_PER_RUN);
+        break;
       }
     }
     
-    console.log(`📊 Total reports to process: ${allReports.length}`);
+    console.log(`📊 Total: ${allReports.length} reports from ${daysChecked} days`);
     
     if (allReports.length === 0) {
       console.log('✅ No storm reports to ingest');
@@ -387,6 +401,7 @@ const handler: Handler = async (event, context) => {
     const duration = Date.now() - startTime;
     const summary = {
       success: true,
+      days_checked: daysChecked,
       reports_fetched: allReports.length,
       inserted: insertedCount,
       skipped: skippedCount,
