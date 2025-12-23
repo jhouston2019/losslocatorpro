@@ -68,14 +68,14 @@ export default function RealMap({ events }: MapProps) {
   // Show empty state if no valid events
   if (eventsWithCoords.length === 0) {
     return (
-      <div className="w-full h-[260px] rounded-xl overflow-hidden shadow-card bg-sapphire-700 flex items-center justify-center">
-        <p className="text-neutral-400 text-sm">No loss events with valid coordinates to display</p>
+      <div className="w-full h-[400px] rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+        <p className="text-slate-600 text-sm">No loss events with valid coordinates to display</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[260px] rounded-xl overflow-hidden shadow-card">
+    <div className="w-full h-[400px] rounded-lg overflow-hidden border border-gray-200" style={{ boxShadow: 'var(--panel-shadow)' }}>
       <MapContainer
         center={center}
         zoom={6}
@@ -96,10 +96,10 @@ export default function RealMap({ events }: MapProps) {
               >
                 <Popup>
                   <div className="text-sm">
-                    <p className="font-semibold">{event.event_type || 'Unknown'}</p>
-                    <p>Severity: {event.severity || 0}</p>
-                    <p>ZIP: {event.zip || 'N/A'}</p>
-                    <p>Probability: {((event.claim_probability || 0) * 100).toFixed(0)}%</p>
+                    <p className="font-semibold text-slate-900">{event.event_type || 'Unknown'}</p>
+                    <p className="text-slate-700">Severity: {event.severity || 0}</p>
+                    <p className="text-slate-700">ZIP: {event.zip || 'N/A'}</p>
+                    <p className="text-slate-700">Probability: {((event.claim_probability || 0) * 100).toFixed(0)}%</p>
                     {event.id && (
                       <a 
                         href={`/property/${event.id}`}

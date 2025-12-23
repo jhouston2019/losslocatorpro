@@ -73,10 +73,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-700">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -84,12 +84,12 @@ export default function DashboardPage() {
 
   if (error || !metrics) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">{error || 'Failed to load data'}</p>
+          <p className="text-red-600 mb-4">{error || 'Failed to load data'}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-500"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
           >
             Retry
           </button>
@@ -109,227 +109,226 @@ export default function DashboardPage() {
   } = metrics;
 
   return (
-    <div className="min-h-screen text-neutral-200">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* ZONE 1: ACTION SUMMARY - Top KPI Row */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card p-4">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-3xl font-bold text-slate-900">{dailyLossCount}</p>
+                <p className="text-sm font-medium text-slate-700 mt-1">Daily Loss Count</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">24h monitoring</p>
+          </div>
+
+          <div className="card p-4">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-3xl font-bold text-slate-900">{highValueZips.length}</p>
+                <p className="text-sm font-medium text-slate-700 mt-1">High-Value ZIPs</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">24h top 10% income</p>
+          </div>
+
+          <div className="card p-4">
+            <div className="flex items-baseline justify-between">
+              <div>
+                <p className="text-3xl font-bold text-slate-900">{convertedPct}%</p>
+                <p className="text-sm font-medium text-slate-700 mt-1">Lead Conversion</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">7d action recommended</p>
+          </div>
+        </section>
+
+        {/* ZONE 2: PRIMARY CANVAS - Map First */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="card">
-              <h1 className="card-header">Internal Loss Overview</h1>
-              <p className="subtext">
-                Daily operational snapshot for loss events and lead routing.
-              </p>
-            </div>
-
-            {/* Enhanced Filters */}
-            <div className="card space-y-3">
-              <h2 className="text-xs font-medium text-neutral-300">Dashboard Filters</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div className="space-y-1">
-                  <label className="text-neutral-400">State</label>
-                  <select
-                    value={selectedState}
-                    onChange={(e) => setSelectedState(e.target.value)}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="all">All States</option>
-                    {availableStates.map((state) => (
-                      <option key={state} value={state}>
-                        {state}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Property Type</label>
-                  <select
-                    value={propertyType}
-                    onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Has Phone Number</label>
-                  <select
-                    value={hasPhoneFilter}
-                    onChange={(e) => setHasPhoneFilter(e.target.value)}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    <option value="all">All</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Min Income Percentile</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={minIncomePercentile}
-                    onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                    placeholder="0-100"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-neutral-400">Min Phone Confidence</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={minPhoneConfidence}
-                    onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                    placeholder="0-100"
-                  />
-                </div>
-
-                <div className="space-y-1 flex items-end">
-                  <button
-                    onClick={() => {
-                      setSelectedState('all');
-                      setMinIncomePercentile(0);
-                      setPropertyType('all');
-                      setHasPhoneFilter('all');
-                      setMinPhoneConfidence(0);
-                    }}
-                    className="w-full rounded-sm border border-neutral-700 bg-neutral-800 px-2 py-1.5 text-neutral-100 hover:bg-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                  >
-                    Reset Filters
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="card">
-                <h2 className="card-header">Daily loss count</h2>
-                <p className="text-4xl font-bold text-white">
-                  {dailyLossCount}
-                </p>
-                <p className="subtext mt-1">Events in last 24 hours</p>
-              </div>
-
-              <div className="card">
-                <h2 className="card-header">High-value ZIPs (24h)</h2>
-                <ul className="space-y-1 text-sm">
-                  {highValueZips.map((zip) => (
-                    <li
-                      key={zip}
-                      className="flex items-center justify-between text-neutral-300"
+            {/* Collapsible Filters */}
+            <div className="card p-4">
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-medium text-slate-700 flex items-center justify-between">
+                  <span>Filters</span>
+                  <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <label className="text-slate-600 font-medium">State</label>
+                    <select
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <span>{zip}</span>
-                      <span className="text-xs text-neutral-400">
-                        top 10% income
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      <option value="all">All States</option>
+                      {availableStates.map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-600 font-medium">Property Type</label>
+                    <select
+                      value={propertyType}
+                      onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="residential">Residential</option>
+                      <option value="commercial">Commercial</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-600 font-medium">Has Phone Number</label>
+                    <select
+                      value={hasPhoneFilter}
+                      onChange={(e) => setHasPhoneFilter(e.target.value)}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-600 font-medium">Min Income Percentile</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={minIncomePercentile}
+                      onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0-100"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-600 font-medium">Min Phone Confidence</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={minPhoneConfidence}
+                      onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0-100"
+                    />
+                  </div>
+
+                  <div className="space-y-1 flex items-end">
+                    <button
+                      onClick={() => {
+                        setSelectedState('all');
+                        setMinIncomePercentile(0);
+                        setPropertyType('all');
+                        setHasPhoneFilter('all');
+                        setMinPhoneConfidence(0);
+                      }}
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      Reset Filters
+                    </button>
+                  </div>
+                </div>
+              </details>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="card">
-                <h2 className="card-header">Events by category (24h)</h2>
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {['Hail', 'Wind', 'Fire', 'Freeze'].map((label) => (
-                    <div
-                      key={label}
-                      className="flex items-center justify-between"
-                    >
-                      <dt className="text-neutral-400">{label}</dt>
-                      <dd className="text-neutral-100 font-medium">
-                        {eventsByCategory[label] || 0}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-
-              <div className="card">
-                <h2 className="card-header">Lead conversion (7d)</h2>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Qualified</dt>
-                    <dd className="text-neutral-100 font-semibold">
-                      {qualifiedPct}%
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Converted</dt>
-                    <dd className="text-neutral-100 font-semibold">
-                      {convertedPct}%
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-neutral-400">Avg. time to contact</dt>
-                    <dd className="text-neutral-100 font-semibold">3.2 hrs</dd>
-                  </div>
-                </dl>
-              </div>
+            {/* Map - Primary Canvas */}
+            <div className="card p-4">
+              <h2 className="text-base font-semibold text-slate-900 mb-3">Recent Loss Activity Map</h2>
+              <RealMap events={recentEvents} />
             </div>
           </div>
 
+          {/* ZONE 3: FLOATING INTELLIGENCE PANELS */}
           <aside className="space-y-6">
-            <div className="card">
-              <h2 className="card-header">Recent Loss Activity Map</h2>
-              <RealMap events={recentEvents} />
+            {/* Top 10 Loss Events - Table Format */}
+            <div className="card p-4">
+              <h2 className="text-base font-semibold text-slate-900 mb-3">Top 10 Loss Events by Severity</h2>
+              <div className="overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 text-xs font-semibold text-slate-700">Event</th>
+                      <th className="text-right py-2 text-xs font-semibold text-slate-700">Severity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {topBySeverity.map((event) => {
+                      const severityColor = event.severity >= 75 ? 'border-red-600' : event.severity >= 50 ? 'border-amber-500' : 'border-green-600';
+                      return (
+                        <tr key={event.id} className={`border-l-2 ${severityColor}`}>
+                          <td className="py-2 pl-2 text-slate-900">
+                            {event.event_type} • {event.zip}
+                          </td>
+                          <td className="py-2 text-right font-medium text-slate-700">
+                            {event.severity}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="space-y-4">
+            {/* High-Value ZIPs - Table Format */}
+            <div className="card p-4">
+              <h2 className="text-base font-semibold text-slate-900 mb-3">High-Value ZIPs (24h)</h2>
+              <div className="overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 text-xs font-semibold text-slate-700">ZIP</th>
+                      <th className="text-right py-2 text-xs font-semibold text-slate-700">Income</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {highValueZips.map((zip) => (
+                      <tr key={zip} className="border-l-2 border-blue-600">
+                        <td className="py-2 pl-2 text-slate-900 font-medium">{zip}</td>
+                        <td className="py-2 text-right text-xs text-slate-600">top 10%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Quick Links - Secondary Panels */}
+            <div className="space-y-3">
               <a href="/loss-feed">
-                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
-                  <p className="text-sm font-semibold text-white">Loss feed</p>
-                  <p className="subtext mt-1">
-                    Full table of ingested events and scoring.
+                <div className="card p-3 hover:shadow-md transition">
+                  <p className="text-sm font-semibold text-slate-900">Loss Feed</p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Full table of ingested events and scoring
                   </p>
                 </div>
               </a>
               <a href="/lead-routing">
-                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
-                  <p className="text-sm font-semibold text-white">Lead routing</p>
-                  <p className="subtext mt-1">
-                    Assign and track outreach on high-priority leads.
+                <div className="card p-3 hover:shadow-md transition">
+                  <p className="text-sm font-semibold text-slate-900">Lead Routing</p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Assign and track outreach on high-priority leads
                   </p>
                 </div>
               </a>
               <a href="/property/10001">
-                <div className="card px-4 py-3 hover:bg-sapphire-700/50 transition rounded-xl shadow-card !overflow-visible">
-                  <p className="text-sm font-semibold text-white">
-                    Property lookup
-                  </p>
-                  <p className="subtext mt-1">
-                    Inspect property-level events and risk layers.
+                <div className="card p-3 hover:shadow-md transition">
+                  <p className="text-sm font-semibold text-slate-900">Property Lookup</p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Inspect property-level events and risk layers
                   </p>
                 </div>
               </a>
-            </div>
-
-            <div className="card">
-              <h2 className="card-header">Top 10 loss events by severity</h2>
-              <ol className="space-y-1.5 text-sm text-neutral-200">
-                {topBySeverity.map((event) => (
-                  <li
-                    key={event.id}
-                    className="flex items-center justify-between"
-                  >
-                    <span>
-                      {event.event_type} • {event.zip}
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      sev {event.severity}
-                    </span>
-                  </li>
-                ))}
-              </ol>
             </div>
           </aside>
         </section>

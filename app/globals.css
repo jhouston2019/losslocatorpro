@@ -6,8 +6,25 @@
 @tailwind utilities;
 
 :root {
-  --ci-navy: #0A2540;
-  --ci-slate: #1E293B;
+  /* Base */
+  --app-bg: #F5F7FA;
+  --panel-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --border-color: #E5E7EB;
+  
+  /* Text */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  
+  /* Accents */
+  --accent-primary: #2563EB;
+  --severity-high: #DC2626;
+  --severity-medium: #F59E0B;
+  --severity-low: #16A34A;
+  
+  /* Shadows */
+  --panel-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 html,
@@ -16,11 +33,11 @@ body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
-  background-color: #0B1120;
+  background-color: var(--app-bg);
 }
 
 body {
-  color: #0F172A;
+  color: var(--text-primary);
 }
 
 a {
@@ -51,7 +68,7 @@ a {
 }
 
 .ci-card {
-  @apply bg-white rounded-xl shadow-sm border border-slate-100;
+  @apply bg-white rounded-lg shadow-sm border border-gray-200;
 }
 
 .ci-button-primary {
@@ -83,13 +100,16 @@ a {
 }
 
 .card {
-  @apply bg-sapphire-800 border border-slateglass-700 rounded-xl p-5 shadow-card;
+  @apply bg-white border border-gray-200 rounded-lg p-5;
+  box-shadow: var(--panel-shadow);
 }
 
 .card-header {
-  @apply text-lg font-semibold mb-3 text-white;
+  @apply text-lg font-semibold mb-3;
+  color: var(--text-primary);
 }
 
 .subtext {
-  @apply text-sm text-neutral-400;
+  @apply text-sm;
+  color: var(--text-secondary);
 }

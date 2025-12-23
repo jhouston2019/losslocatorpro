@@ -150,30 +150,30 @@ export default function LeadRoutingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading routing queue...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-700">Loading routing queue...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-neutral-200">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="card">
-          <h1 className="card-header">Lead routing</h1>
+          <h1 className="card-header">Lead Routing</h1>
           <p className="subtext">
             Internal workflow engine for assigning outreach and follow-up.
           </p>
         </header>
 
         <section className="card space-y-3">
-          <h2 className="text-xs font-medium text-neutral-300">Filters</h2>
+          <h2 className="text-xs font-medium text-slate-700">Filters</h2>
           <div className="flex flex-wrap gap-2 text-[11px]">
             <div className="flex items-center gap-2">
-              <span className="text-neutral-400">Status:</span>
+              <span className="text-slate-600">Status:</span>
               {(['All', 'Unassigned', 'Assigned', 'Contacted', 'Qualified', 'Converted'] as const).map(
                 (status) => (
                   <button
@@ -182,8 +182,8 @@ export default function LeadRoutingPage() {
                     onClick={() => setActiveStatus(status as LeadStatus | 'All')}
                     className={
                       activeStatus === status
-                        ? 'rounded-sm border border-neutral-300 bg-neutral-100 px-2.5 py-1 text-neutral-900'
-                        : 'rounded-sm border border-neutral-700 bg-neutral-950 px-2.5 py-1 text-neutral-200 hover:border-neutral-500'
+                        ? 'rounded border border-blue-600 bg-blue-600 px-2.5 py-1 text-white'
+                        : 'rounded border border-gray-300 bg-white px-2.5 py-1 text-slate-700 hover:bg-gray-50'
                     }
                   >
                     {status}
@@ -193,21 +193,21 @@ export default function LeadRoutingPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-4 text-xs">
-            <label className="flex items-center gap-2 text-neutral-300">
+            <label className="flex items-center gap-2 text-slate-700">
               <input
                 type="checkbox"
                 checked={commercialOnly}
                 onChange={(e) => setCommercialOnly(e.target.checked)}
-                className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
+                className="h-3 w-3 rounded border border-gray-300"
               />
               Commercial properties only
             </label>
-            <label className="flex items-center gap-2 text-neutral-300">
+            <label className="flex items-center gap-2 text-slate-700">
               <input
                 type="checkbox"
                 checked={phoneRequired}
                 onChange={(e) => setPhoneRequired(e.target.checked)}
-                className="h-3 w-3 rounded border border-neutral-600 bg-neutral-950"
+                className="h-3 w-3 rounded border border-gray-300"
               />
               Phone number required
             </label>
@@ -215,39 +215,39 @@ export default function LeadRoutingPage() {
         </section>
 
         <section className="relative card p-0">
-          <div className="px-4 py-2 border-b border-neutral-800 flex items-center justify-between">
-            <h2 className="text-xs font-medium text-neutral-300">
-              Unrouted leads
+          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-900">
+              Unrouted Leads
             </h2>
-            <span className="text-[11px] text-neutral-500">
+            <span className="text-xs text-slate-600">
               {filteredLeads.length} leads
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-sapphire-800 text-neutral-300 border-b border-slateglass-700">
+              <thead className="bg-gray-50 text-slate-700 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className="px-4 py-3 text-left font-semibold text-xs">
                     Property address
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">Owner</th>
-                  <th className="px-4 py-3 text-left font-semibold">Type</th>
-                  <th className="px-4 py-3 text-left font-semibold">Event</th>
-                  <th className="px-4 py-3 text-left font-semibold">Severity</th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Owner</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Type</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Event</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Severity</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">
                     Income %ile
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className="px-4 py-3 text-left font-semibold text-xs">
                     Phone
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">
+                  <th className="px-4 py-3 text-left font-semibold text-xs">
                     Claim Prob
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold">Status</th>
-                  <th className="px-4 py-3 text-left font-semibold">Action</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold text-xs">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slateglass-800">
+              <tbody className="divide-y divide-gray-100">
                 {filteredLeads.map((lead) => {
                   const phoneConfidence = lead.lossProperty?.phone_confidence || 0;
                   const hasPhone = !!lead.lossProperty?.phone_primary;
@@ -256,45 +256,46 @@ export default function LeadRoutingPage() {
                     : hasPhone && phoneConfidence < 60 
                     ? '***-***-****' 
                     : '—';
+                  const severityColor = lead.severity >= 75 ? 'border-red-600' : lead.severity >= 50 ? 'border-amber-500' : 'border-green-600';
                   
                   return (
                     <tr
                       key={lead.id}
-                      className="hover:bg-sapphire-700/40 transition"
+                      className={`hover:bg-gray-50 transition border-l-2 ${severityColor}`}
                     >
-                      <td className="px-4 py-3 align-top text-white">
+                      <td className="px-4 py-3 align-top text-slate-900 font-medium">
                         {lead.address}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200 text-xs">
+                      <td className="px-4 py-3 align-top text-slate-700 text-xs">
                         {lead.lossProperty?.owner_name || '—'}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-700">
                         {lead.lossEvent?.is_commercial ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900 text-blue-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
                             Commercial
                           </span>
                         ) : lead.lossEvent?.property_type === 'residential' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
                             Residential
                           </span>
                         ) : (
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-700">
                         {lead.event}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-900 font-semibold">
                         {lead.severity}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-700">
                         {lead.zipDemographic?.income_percentile ? (
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                             lead.zipDemographic.income_percentile >= 90 
-                              ? 'bg-yellow-900 text-yellow-200' 
+                              ? 'bg-amber-50 text-amber-700' 
                               : lead.zipDemographic.income_percentile >= 75 
-                              ? 'bg-orange-900 text-orange-200' 
-                              : 'bg-neutral-800 text-neutral-300'
+                              ? 'bg-orange-50 text-orange-700' 
+                              : 'bg-gray-100 text-gray-700'
                           }`}>
                             {lead.zipDemographic.income_percentile}%
                           </span>
@@ -302,11 +303,11 @@ export default function LeadRoutingPage() {
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200 text-xs">
+                      <td className="px-4 py-3 align-top text-slate-700 text-xs">
                         {hasPhone ? (
                           <div className="flex flex-col gap-0.5">
                             <span>{phoneDisplay}</span>
-                            <span className="text-[10px] text-neutral-400">
+                            <span className="text-[10px] text-slate-500">
                               conf: {phoneConfidence}%
                             </span>
                           </div>
@@ -314,17 +315,17 @@ export default function LeadRoutingPage() {
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-700">
                         {(lead.claimProbability * 100).toFixed(0)}%
                       </td>
-                      <td className="px-4 py-3 align-top text-neutral-200">
+                      <td className="px-4 py-3 align-top text-slate-700">
                         {lead.status}
                       </td>
                       <td className="px-4 py-3 align-top">
                         <button
                           type="button"
                           onClick={() => openPanel(lead.id)}
-                          className="rounded-sm border border-neutral-700 bg-neutral-950 px-2 py-1 text-[11px] font-medium text-neutral-100 hover:border-neutral-500"
+                          className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-gray-50"
                         >
                           Assign
                         </button>
@@ -336,7 +337,7 @@ export default function LeadRoutingPage() {
                   <tr>
                     <td
                       colSpan={10}
-                      className="px-3 py-4 text-center text-xs text-neutral-500"
+                      className="px-3 py-4 text-center text-sm text-slate-500"
                     >
                       No leads match the selected filters.
                     </td>
@@ -347,26 +348,27 @@ export default function LeadRoutingPage() {
           </div>
 
           <div
-            className={`fixed top-0 right-0 h-full w-96 bg-sapphire-800 shadow-card border-l border-slateglass-700 p-6 transition-transform duration-300 ${
+            className={`fixed top-0 right-0 h-full w-96 bg-white border-l border-gray-200 p-6 transition-transform duration-300 ${
               panelLeadId ? 'translate-x-0' : 'translate-x-full'
             }`}
+            style={{ boxShadow: '-2px 0 8px rgba(0,0,0,0.1)' }}
           >
             <div className="space-y-4 text-xs">
               <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg text-neutral-50">
+                <h2 className="font-semibold text-lg text-slate-900">
                   Assign Lead
                 </h2>
                 <button
                   type="button"
                   onClick={closePanel}
-                  className="text-[11px] text-neutral-400 hover:text-neutral-100"
+                  className="text-xs text-slate-600 hover:text-slate-900"
                 >
                   Close
                 </button>
               </div>
               {panelLeadId && (
-                <p className="text-[11px] text-neutral-400">
-                  Lead ID: <span className="text-neutral-100">{panelLeadId}</span>
+                <p className="text-xs text-slate-600">
+                  Lead ID: <span className="text-slate-900 font-medium">{panelLeadId}</span>
                 </p>
               )}
               <input
@@ -374,10 +376,10 @@ export default function LeadRoutingPage() {
                 placeholder="Assignee name"
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100 placeholder-neutral-400"
+                className="w-full p-2 bg-white border border-gray-300 rounded text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <select
-                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100"
+                className="w-full p-2 bg-white border border-gray-300 rounded text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={assigneeType}
                 onChange={(e) => setAssigneeType(e.target.value)}
               >
@@ -386,7 +388,7 @@ export default function LeadRoutingPage() {
                 <option value="contractor-partner">Contractor Partner</option>
               </select>
               <select
-                className="w-full p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-xs text-neutral-100"
+                className="w-full p-2 bg-white border border-gray-300 rounded text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
               >
@@ -395,7 +397,7 @@ export default function LeadRoutingPage() {
                 <option value="Low">Low priority</option>
               </select>
               <textarea
-                className="w-full h-32 p-2 bg-sapphire-700 border border-slateglass-700 rounded-md text-neutral-100"
+                className="w-full h-32 p-2 bg-white border border-gray-300 rounded text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -404,7 +406,7 @@ export default function LeadRoutingPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full p-2 bg-blue-600 rounded-md hover:bg-blue-500 text-xs font-medium text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full p-2 bg-blue-600 rounded hover:bg-blue-700 text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
