@@ -435,11 +435,7 @@ export async function getDashboardMetrics(filters?: DashboardFilters) {
   // Build query with filters
   let query = supabase
     .from('loss_events')
-    .select(`
-      *,
-      loss_property:loss_properties(*),
-      zip_demographic:zip_demographics(*)
-    `)
+    .select('*')
     .gte('event_timestamp', twentyFourHoursAgo.toISOString());
 
   // Apply state filter
@@ -795,11 +791,7 @@ export type EnrichedLossEvent = LossEvent & {
 export async function getLossEventsWithEnrichment(): Promise<EnrichedLossEvent[]> {
   const { data, error } = await supabase
     .from('loss_events')
-    .select(`
-      *,
-      loss_property:loss_properties(*),
-      zip_demographic:zip_demographics(*)
-    `)
+    .select('*')
     .order('event_timestamp', { ascending: false });
 
   if (error) {
@@ -807,7 +799,7 @@ export async function getLossEventsWithEnrichment(): Promise<EnrichedLossEvent[]
     throw error;
   }
 
-  // Supabase returns joined relations, we cast to any first to avoid type issues
+  // Return basic loss events without enrichment for now
   return (data || []) as any as EnrichedLossEvent[];
 }
 
