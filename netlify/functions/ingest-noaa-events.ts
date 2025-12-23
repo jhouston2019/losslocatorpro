@@ -9,48 +9,24 @@ import type { Database } from '../../lib/database.types';
 // Runs every 15 minutes via Netlify scheduled functions
 // Prevents duplicates using unique source + source_event_id index
 
-// Weather.gov API Alert structure
-interface WeatherAlert {
-  id: string;
-  type: string;
-  geometry: {
-    type: string;
-    coordinates: number[][][] | [number, number] | null;
-  } | null;
-  properties: {
-    '@id': string;
-    id: string;
-    areaDesc: string;
-    geocode: {
-      SAME?: string[];
-      UGC?: string[];
-    };
-    affectedZones: string[];
-    sent: string;
-    effective: string;
-    onset: string | null;
-    expires: string;
-    ends: string | null;
-    status: string;
-    messageType: string;
-    category: string;
-    severity: string;
-    certainty: string;
-    urgency: string;
-    event: string; // "Severe Thunderstorm Warning", "Tornado Warning", etc.
-    headline: string;
-    description: string;
-    instruction: string | null;
-    response: string;
-  };
+// NOAA Storm Reports structure
+interface StormReport {
+  reportTime: string; // "2025-12-22T14:30:00Z"
+  reportType: string; // "Hail", "Wind", "Tornado"
+  lat: number;
+  lon: number;
+  state?: string;
+  county?: string;
+  city?: string;
+  hailSize?: number; // inches
+  windSpeed?: number; // mph
+  comments?: string;
+  source?: string;
 }
 
-interface WeatherAPIResponse {
-  '@context': any;
-  type: string;
-  features: WeatherAlert[];
-  title: string;
-  updated: string;
+interface StormReportsResponse {
+  reports: StormReport[];
+  generatedAt?: string;
 }
 
 // Legacy structure for fallback
@@ -83,11 +59,12 @@ interface NOAAFeatureCollection {
 // CONFIGURATION
 // ============================================================================
 
-// NOAA Weather.gov API - Active severe weather alerts
-const NOAA_WEATHER_API = 'https://api.weather.gov/alerts/active?status=actual&message_type=alert&severity=severe,extreme';
-// Fallback: Use USGS earthquake API if weather API is down
+// NOAA Storm Prediction Center - Storm Reports (hail, wind, tornado)
+const NOAA_STORM_REPORTS_TODAY = 'https://www.spc.noaa.gov/climo/reports/today.json';
+const NOAA_STORM_REPORTS_YESTERDAY = 'https://www.spc.noaa.gov/climo/reports/yesterday.json';
+// Fallback: Use USGS earthquake API if NOAA is down
 const FALLBACK_FEED_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
-// Use real weather data
+// Use real storm reports
 const USE_FALLBACK = false;
 
 // ============================================================================
@@ -95,64 +72,50 @@ const USE_FALLBACK = false;
 // ============================================================================
 
 /**
- * Normalize event type from Weather.gov alert to our schema
+ * Normalize storm report type to our schema
  */
-function normalizeEventType(weatherEventType: string): 'Hail' | 'Wind' | 'Fire' | 'Freeze' | null {
-  const type = weatherEventType.toLowerCase();
+function normalizeStormReportType(report: StormReport): 'Hail' | 'Wind' | 'Fire' | 'Freeze' | null {
+  const type = report.reportType?.toLowerCase() || '';
   
-  // Hail events
-  if (type.includes('hail')) return 'Hail';
+  // Direct mapping from NOAA report types
+  if (type.includes('hail') || report.hailSize) return 'Hail';
+  if (type.includes('wind') || report.windSpeed) return 'Wind';
+  if (type.includes('tornado')) return 'Wind'; // Tornadoes are wind events
   
-  // Wind events
-  if (type.includes('wind') || type.includes('gust') || type.includes('tornado') || 
-      type.includes('hurricane') || type.includes('tropical storm')) return 'Wind';
-  
-  // Severe thunderstorms (often include hail/wind)
-  if (type.includes('severe thunderstorm') || type.includes('severe weather')) return 'Wind';
-  
-  // Fire events
-  if (type.includes('fire') || type.includes('red flag')) return 'Fire';
-  
-  // Freeze events
-  if (type.includes('freeze') || type.includes('frost') || type.includes('ice') || 
-      type.includes('winter storm') || type.includes('blizzard')) return 'Freeze';
-  
-  // Ignore non-severe events
   return null;
 }
 
 /**
- * Calculate severity score based on Weather.gov severity and event type
+ * Calculate severity score from storm report magnitude
  */
-function calculateSeverity(eventType: string, weatherSeverity?: string, urgency?: string): number {
-  // Base severity from Weather.gov classification
-  let baseSeverity = 0.5;
+function calculateSeverityFromReport(report: StormReport): number {
+  const type = report.reportType?.toLowerCase() || '';
   
-  if (weatherSeverity) {
-    const sev = weatherSeverity.toLowerCase();
-    if (sev === 'extreme') baseSeverity = 0.95;
-    else if (sev === 'severe') baseSeverity = 0.8;
-    else if (sev === 'moderate') baseSeverity = 0.6;
-    else if (sev === 'minor') baseSeverity = 0.4;
+  // Hail severity based on size
+  if (report.hailSize) {
+    if (report.hailSize >= 2.75) return 0.95; // Baseball or larger
+    if (report.hailSize >= 2.0) return 0.9;   // Egg size
+    if (report.hailSize >= 1.5) return 0.8;   // Walnut size
+    if (report.hailSize >= 1.0) return 0.7;   // Quarter size
+    if (report.hailSize >= 0.75) return 0.6;  // Penny size
+    return 0.5;
   }
   
-  // Adjust based on urgency
-  if (urgency) {
-    const urg = urgency.toLowerCase();
-    if (urg === 'immediate') baseSeverity = Math.min(1.0, baseSeverity * 1.1);
-    else if (urg === 'expected') baseSeverity = Math.min(1.0, baseSeverity * 1.0);
-    else if (urg === 'future') baseSeverity = baseSeverity * 0.9;
+  // Wind severity based on speed
+  if (report.windSpeed) {
+    if (report.windSpeed >= 100) return 0.95; // Extreme
+    if (report.windSpeed >= 80) return 0.9;   // Very severe
+    if (report.windSpeed >= 65) return 0.8;   // Severe
+    if (report.windSpeed >= 58) return 0.7;   // Damaging
+    if (report.windSpeed >= 50) return 0.6;   // Strong
+    return 0.5;
   }
   
-  // Adjust based on event type
-  const type = eventType.toLowerCase();
-  if (type.includes('tornado') || type.includes('hurricane')) {
-    baseSeverity = Math.min(1.0, baseSeverity * 1.2);
-  } else if (type.includes('hail')) {
-    baseSeverity = Math.min(1.0, baseSeverity * 1.1);
-  }
+  // Tornado - always high severity
+  if (type.includes('tornado')) return 0.9;
   
-  return Math.max(0.3, Math.min(1.0, baseSeverity));
+  // Default
+  return 0.5;
 }
 
 /**
@@ -209,46 +172,38 @@ async function getStateFromCoordinates(lat: number, lng: number): Promise<string
 }
 
 /**
- * Extract center coordinates from Weather.gov alert geometry
+ * Generate unique source event ID for storm report
  */
-function extractCoordinates(geometry: WeatherAlert['geometry']): [number, number] | null {
-  if (!geometry || !geometry.coordinates) return null;
-  
+function generateSourceEventId(report: StormReport): string {
+  const date = report.reportTime.split('T')[0]; // YYYY-MM-DD
+  const type = report.reportType?.toLowerCase() || 'unknown';
+  const lat = report.lat.toFixed(4);
+  const lon = report.lon.toFixed(4);
+  return `${date}-${type}-${lat}-${lon}`;
+}
+
+/**
+ * Check if we should backfill yesterday's data
+ * Returns true on first run (no NOAA events in database)
+ */
+async function shouldBackfill(supabase: any): Promise<boolean> {
   try {
-    const coords = geometry.coordinates;
+    const { data, error } = await supabase
+      .from('loss_events')
+      .select('id')
+      .eq('source', 'NOAA')
+      .limit(1);
     
-    // Point geometry [longitude, latitude]
-    if (geometry.type === 'Point' && Array.isArray(coords) && coords.length === 2) {
-      return [coords[1] as number, coords[0] as number]; // [lat, lng]
+    if (error) {
+      console.warn('Error checking for backfill:', error);
+      return false;
     }
     
-    // Polygon or MultiPolygon - calculate centroid
-    if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
-      const allCoords: number[][] = [];
-      
-      function flattenCoords(arr: any): void {
-        if (Array.isArray(arr)) {
-          if (arr.length === 2 && typeof arr[0] === 'number' && typeof arr[1] === 'number') {
-            allCoords.push(arr);
-          } else {
-            arr.forEach(item => flattenCoords(item));
-          }
-        }
-      }
-      
-      flattenCoords(coords);
-      
-      if (allCoords.length > 0) {
-        const avgLng = allCoords.reduce((sum, coord) => sum + coord[0], 0) / allCoords.length;
-        const avgLat = allCoords.reduce((sum, coord) => sum + coord[1], 0) / allCoords.length;
-        return [avgLat, avgLng];
-      }
-    }
-    
-    return null;
+    // If no NOAA events exist, backfill yesterday
+    return !data || data.length === 0;
   } catch (error) {
-    console.error('Error extracting coordinates:', error);
-    return null;
+    console.error('Backfill check error:', error);
+    return false;
   }
 }
 
@@ -280,49 +235,55 @@ const handler: Handler = async (event, context) => {
       },
     });
     
-    // Fetch severe weather data
-    console.log('📡 Fetching NOAA Weather.gov alerts...');
-    let response: Response;
-    let isWeatherAPI = !USE_FALLBACK;
+    // Check if we should backfill yesterday's data
+    const needsBackfill = await shouldBackfill(supabase);
+    const urlsToFetch = needsBackfill 
+      ? [NOAA_STORM_REPORTS_YESTERDAY, NOAA_STORM_REPORTS_TODAY]
+      : [NOAA_STORM_REPORTS_TODAY];
     
-    if (USE_FALLBACK) {
-      console.log('📊 Using fallback data source (USGS earthquakes as demo)');
-      response = await fetch(FALLBACK_FEED_URL);
-    } else {
+    if (needsBackfill) {
+      console.log('🔄 First run detected - backfilling yesterday + today');
+    }
+    
+    let allReports: StormReport[] = [];
+    
+    // Fetch storm reports
+    for (const url of urlsToFetch) {
       try {
-        response = await fetch(NOAA_WEATHER_API, {
+        console.log(`📡 Fetching storm reports from ${url.includes('yesterday') ? 'yesterday' : 'today'}...`);
+        
+        const response = await fetch(url, {
           headers: {
             'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
-            'Accept': 'application/geo+json',
+            'Accept': 'application/json',
           },
         });
         
         if (!response.ok) {
-          console.warn(`Weather.gov API returned ${response.status}, using fallback`);
-          response = await fetch(FALLBACK_FEED_URL);
-          isWeatherAPI = false;
+          console.warn(`Storm reports returned ${response.status}, skipping`);
+          continue;
         }
-      } catch (primaryError) {
-        console.warn('Weather.gov API unavailable, using fallback:', primaryError);
-        response = await fetch(FALLBACK_FEED_URL);
-        isWeatherAPI = false;
+        
+        const data: StormReportsResponse = await response.json();
+        
+        if (data.reports && Array.isArray(data.reports)) {
+          allReports = allReports.concat(data.reports);
+          console.log(`📊 Found ${data.reports.length} reports`);
+        }
+      } catch (fetchError) {
+        console.error(`Error fetching ${url}:`, fetchError);
       }
     }
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch weather data: ${response.status} ${response.statusText}`);
-    }
+    console.log(`📊 Total reports to process: ${allReports.length}`);
     
-    const data: WeatherAPIResponse | NOAAFeatureCollection = await response.json();
-    console.log(`📊 Found ${data.features?.length || 0} alerts to process`);
-    
-    if (!data.features || data.features.length === 0) {
-      console.log('✅ No new events to ingest');
+    if (allReports.length === 0) {
+      console.log('✅ No storm reports to ingest');
       return {
         statusCode: 200,
         body: JSON.stringify({
           success: true,
-          message: 'No new events',
+          message: 'No storm reports available',
           inserted: 0,
           skipped: 0,
           errors: 0,
@@ -331,82 +292,60 @@ const handler: Handler = async (event, context) => {
       };
     }
     
-    // Process each alert/event
-    for (const feature of data.features) {
+    // Process each storm report
+    for (const report of allReports) {
       try {
-        let eventId: string;
-        let coordinates: [number, number] | null;
-        let eventName: string;
-        let timestamp: string;
-        let weatherSeverity: string | undefined;
-        let urgency: string | undefined;
-        
-        // Handle Weather.gov API format
-        if (isWeatherAPI) {
-          const alert = feature as WeatherAlert;
-          eventId = alert.properties.id || alert.id;
-          eventName = alert.properties.event;
-          timestamp = alert.properties.sent || alert.properties.effective;
-          weatherSeverity = alert.properties.severity;
-          urgency = alert.properties.urgency;
-          coordinates = extractCoordinates(alert.geometry);
-          
-          if (!coordinates) {
-            console.log(`⚠️ No coordinates for alert ${eventId}, skipping`);
-            skippedCount++;
-            continue;
-          }
-        } 
-        // Handle fallback format (USGS)
-        else {
-          const fallbackEvent = feature as NOAAEvent;
-          eventId = fallbackEvent.id;
-          eventName = fallbackEvent.properties.event || 'Unknown';
-          timestamp = fallbackEvent.properties.time;
-          
-          if (!fallbackEvent.geometry?.coordinates) {
-            skippedCount++;
-            continue;
-          }
-          
-          const [longitude, latitude] = fallbackEvent.geometry.coordinates;
-          coordinates = [latitude, longitude];
+        // Validate report has required fields
+        if (!report.lat || !report.lon || !report.reportTime) {
+          skippedCount++;
+          continue;
         }
         
-        const [latitude, longitude] = coordinates;
-        const eventType = normalizeEventType(eventName);
-        
+        // Normalize event type
+        const eventType = normalizeStormReportType(report);
         if (!eventType) {
-          console.log(`⚠️ Skipping non-severe event: ${eventName}`);
           skippedCount++;
           continue;
         }
         
-        // Reverse geocode to get ZIP and state
-        const location = await reverseGeocodeToZip(latitude, longitude);
+        // Generate unique event ID
+        const eventId = generateSourceEventId(report);
         
-        if (!location?.zip) {
-          console.log(`⚠️ Could not resolve ZIP for event ${eventId} at ${latitude},${longitude}`);
-          skippedCount++;
-          continue;
-        }
-        
-        // Calculate severity and claim probability
-        const severity = calculateSeverity(eventName, weatherSeverity, urgency);
+        // Calculate severity from report magnitude
+        const severity = calculateSeverityFromReport(report);
         const claimProbability = calculateClaimProbability(severity);
+        
+        // Try to reverse geocode to get ZIP and state
+        let zip: string | null = null;
+        let stateCode: string | null = report.state || null;
+        
+        try {
+          const location = await reverseGeocodeToZip(report.lat, report.lon);
+          if (location) {
+            zip = location.zip;
+            stateCode = location.state || stateCode;
+          }
+        } catch (geoError) {
+          console.warn(`Geocoding failed for ${eventId}, continuing without ZIP`);
+        }
+        
+        // Don't skip if ZIP is missing - insert anyway
+        if (!zip) {
+          zip = '00000'; // Placeholder for reports without ZIP
+        }
         
         // Prepare event data
         const eventData = {
           event_type: eventType,
           severity,
           claim_probability: claimProbability,
-          event_timestamp: timestamp || new Date().toISOString(),
-          zip: location.zip,
-          state_code: location.state || null,
-          lat: latitude,
-          lng: longitude,
-          latitude,
-          longitude,
+          event_timestamp: report.reportTime,
+          zip,
+          state_code: stateCode,
+          lat: report.lat,
+          lng: report.lon,
+          latitude: report.lat,
+          longitude: report.lon,
           source: 'NOAA',
           source_event_id: eventId,
           status: 'Unreviewed' as const,
@@ -424,19 +363,23 @@ const handler: Handler = async (event, context) => {
         
         if (error) {
           if (error.code === '23505') {
-            console.log(`⏭️ Skipping duplicate event: ${eventId}`);
             skippedCount++;
           } else {
-            console.error(`❌ Error inserting event ${eventId}:`, error);
+            console.error(`❌ Error inserting ${eventId}:`, error);
             errorCount++;
           }
         } else {
-          console.log(`✅ Inserted: ${eventName} in ${location.zip}, ${location.state} (severity: ${severity.toFixed(2)})`);
+          const reportDesc = report.hailSize 
+            ? `${report.hailSize}" hail`
+            : report.windSpeed 
+              ? `${report.windSpeed}mph wind`
+              : report.reportType;
+          console.log(`✅ ${reportDesc} in ${stateCode || 'unknown'} (${severity.toFixed(2)})`);
           insertedCount++;
         }
         
-      } catch (eventError) {
-        console.error('Error processing event:', eventError);
+      } catch (reportError) {
+        console.error('Error processing report:', reportError);
         errorCount++;
       }
     }
@@ -444,14 +387,14 @@ const handler: Handler = async (event, context) => {
     const duration = Date.now() - startTime;
     const summary = {
       success: true,
+      reports_fetched: allReports.length,
       inserted: insertedCount,
       skipped: skippedCount,
       errors: errorCount,
-      total: data.features.length,
-      duration,
+      duration_ms: duration,
     };
     
-    console.log('🎉 Ingestion complete:', summary);
+    console.log('🎉 Storm reports ingestion complete:', summary);
     
     return {
       statusCode: 200,
