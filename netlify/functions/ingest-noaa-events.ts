@@ -60,10 +60,23 @@ interface NOAAFeatureCollection {
 // ============================================================================
 
 // NOAA Storm Prediction Center - Storm Reports (hail, wind, tornado)
+// Note: NOAA SPC provides CSV format, not JSON
 const NOAA_STORM_REPORTS_BASE = 'https://www.spc.noaa.gov/climo/reports/';
 // Backfill configuration
 const DAYS_TO_BACKFILL = 7; // Last 7 days including today
 const MAX_REPORTS_PER_RUN = 500; // Safety limit
+
+// CSV column indices for NOAA storm reports
+const CSV_COLUMNS = {
+  TIME: 0,
+  F_SCALE: 1,
+  LOCATION: 2,
+  COUNTY: 3,
+  STATE: 4,
+  LAT: 5,
+  LON: 6,
+  COMMENTS: 7,
+};
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -203,80 +216,151 @@ function generateDateArray(days: number): string[] {
 }
 
 /**
- * Fetch storm reports for a specific date
+ * Parse CSV line handling quoted fields
  */
-async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]> {
-  try {
-    // Try multiple URL formats
-    const urls = [
-      `${NOAA_STORM_REPORTS_BASE}${dateStr}.json`,
-      `${NOAA_STORM_REPORTS_BASE}${dateStr}_rpts.json`,
-      `${NOAA_STORM_REPORTS_BASE}${dateStr}_rpts_filtered.json`,
-    ];
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
     
-    for (const url of urls) {
-      try {
-        console.log(`🔍 Trying: ${url}`);
-        
-        const response = await fetch(url, {
-          headers: {
-            'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
-            'Accept': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.log(`   ${response.status} - trying next format`);
-          continue;
-        }
-        
-        const text = await response.text();
-        console.log(`   ✅ Got response, length: ${text.length}`);
-        console.log(`   First 200 chars: ${text.substring(0, 200)}`);
-        
-        // Try to parse as JSON
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.log(`   ⚠️ Not valid JSON, skipping`);
-          continue;
-        }
-        
-        // Try different JSON structures
-        let reports: StormReport[] = [];
-        
-        // Structure 1: { reports: [...] }
-        if (data.reports && Array.isArray(data.reports)) {
-          reports = data.reports;
-        }
-        // Structure 2: Direct array
-        else if (Array.isArray(data)) {
-          reports = data;
-        }
-        // Structure 3: Nested in features
-        else if (data.features && Array.isArray(data.features)) {
-          reports = data.features.map((f: any) => f.properties || f);
-        }
-        
-        if (reports.length > 0) {
-          console.log(`📊 ${dateStr}: ${reports.length} reports from ${url}`);
-          return reports;
-        }
-        
-      } catch (urlError) {
-        console.log(`   ❌ Error with ${url}:`, urlError);
-        continue;
-      }
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  return result;
+}
+
+/**
+ * Parse NOAA CSV storm report into StormReport object
+ */
+function parseStormReportFromCSV(fields: string[], reportType: string, dateStr: string): StormReport | null {
+  try {
+    // Extract fields
+    const time = fields[0]?.trim() || '';
+    const magnitude = fields[1]?.trim() || '';
+    const location = fields[2]?.trim() || '';
+    const county = fields[3]?.trim() || '';
+    const state = fields[4]?.trim() || '';
+    const latStr = fields[5]?.trim() || '';
+    const lonStr = fields[6]?.trim() || '';
+    const comments = fields[7]?.trim() || '';
+    
+    // Parse coordinates
+    const lat = parseFloat(latStr);
+    const lon = parseFloat(lonStr);
+    
+    if (isNaN(lat) || isNaN(lon)) {
+      return null;
     }
     
-    console.log(`📅 No reports found for ${dateStr} (tried all formats)`);
-    return [];
+    // Build timestamp (YYYYMMDD + HHMM)
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    const hour = time.substring(0, 2) || '12';
+    const minute = time.substring(2, 4) || '00';
+    const reportTime = `${year}-${month}-${day}T${hour}:${minute}:00Z`;
     
+    // Parse magnitude based on report type
+    let hailSize: number | undefined;
+    let windSpeed: number | undefined;
+    
+    if (reportType === 'hail') {
+      hailSize = parseFloat(magnitude);
+      if (isNaN(hailSize)) hailSize = undefined;
+    } else if (reportType === 'wind') {
+      windSpeed = parseInt(magnitude);
+      if (isNaN(windSpeed)) windSpeed = undefined;
+    }
+    
+    return {
+      reportTime,
+      reportType: reportType.charAt(0).toUpperCase() + reportType.slice(1),
+      lat,
+      lon,
+      state,
+      county,
+      city: location,
+      hailSize,
+      windSpeed,
+      comments,
+    };
   } catch (error) {
-    console.error(`❌ Error fetching ${dateStr}:`, error);
-    return [];
+    console.error('Error parsing CSV line:', error);
+    return null;
   }
+}
+
+/**
+ * Fetch storm reports for a specific date from NOAA CSV files
+ */
+async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]> {
+  const allReports: StormReport[] = [];
+  
+  // NOAA SPC provides separate CSV files for hail, wind, and tornado
+  const reportTypes = [
+    { type: 'hail', file: `${dateStr}_rpts_hail.csv` },
+    { type: 'wind', file: `${dateStr}_rpts_wind.csv` },
+    { type: 'tornado', file: `${dateStr}_rpts_torn.csv` },
+  ];
+  
+  for (const { type, file } of reportTypes) {
+    try {
+      const url = `${NOAA_STORM_REPORTS_BASE}${file}`;
+      console.log(`🔍 Fetching ${type} reports: ${url}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
+        },
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log(`   📅 No ${type} reports for ${dateStr}`);
+        } else {
+          console.log(`   ⚠️ ${type} returned ${response.status}`);
+        }
+        continue;
+      }
+      
+      const csvText = await response.text();
+      const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+      
+      console.log(`   📄 Got ${lines.length} lines`);
+      
+      // Skip header line and parse data
+      for (let i = 1; i < lines.length; i++) {
+        const fields = parseCSVLine(lines[i]);
+        const report = parseStormReportFromCSV(fields, type, dateStr);
+        
+        if (report) {
+          allReports.push(report);
+        }
+      }
+      
+      console.log(`   ✅ Parsed ${allReports.length} ${type} reports`);
+      
+    } catch (error) {
+      console.error(`   ❌ Error fetching ${type}:`, error);
+    }
+  }
+  
+  if (allReports.length > 0) {
+    console.log(`📊 ${dateStr}: Total ${allReports.length} reports`);
+  }
+  
+  return allReports;
 }
 
 // ============================================================================
