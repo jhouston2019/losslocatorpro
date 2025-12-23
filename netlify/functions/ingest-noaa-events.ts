@@ -207,32 +207,72 @@ function generateDateArray(days: number): string[] {
  */
 async function fetchStormReportsForDate(dateStr: string): Promise<StormReport[]> {
   try {
-    const url = `${NOAA_STORM_REPORTS_BASE}${dateStr}.json`;
+    // Try multiple URL formats
+    const urls = [
+      `${NOAA_STORM_REPORTS_BASE}${dateStr}.json`,
+      `${NOAA_STORM_REPORTS_BASE}${dateStr}_rpts.json`,
+      `${NOAA_STORM_REPORTS_BASE}${dateStr}_rpts_filtered.json`,
+    ];
     
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
-        'Accept': 'application/json',
-      },
-    });
-    
-    if (!response.ok) {
-      if (response.status === 404) {
-        console.log(`📅 No reports for ${dateStr} (404)`);
-        return [];
+    for (const url of urls) {
+      try {
+        console.log(`🔍 Trying: ${url}`);
+        
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'LossLocatorPro/1.0 (contact@losslocatorpro.com)',
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          console.log(`   ${response.status} - trying next format`);
+          continue;
+        }
+        
+        const text = await response.text();
+        console.log(`   ✅ Got response, length: ${text.length}`);
+        console.log(`   First 200 chars: ${text.substring(0, 200)}`);
+        
+        // Try to parse as JSON
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.log(`   ⚠️ Not valid JSON, skipping`);
+          continue;
+        }
+        
+        // Try different JSON structures
+        let reports: StormReport[] = [];
+        
+        // Structure 1: { reports: [...] }
+        if (data.reports && Array.isArray(data.reports)) {
+          reports = data.reports;
+        }
+        // Structure 2: Direct array
+        else if (Array.isArray(data)) {
+          reports = data;
+        }
+        // Structure 3: Nested in features
+        else if (data.features && Array.isArray(data.features)) {
+          reports = data.features.map((f: any) => f.properties || f);
+        }
+        
+        if (reports.length > 0) {
+          console.log(`📊 ${dateStr}: ${reports.length} reports from ${url}`);
+          return reports;
+        }
+        
+      } catch (urlError) {
+        console.log(`   ❌ Error with ${url}:`, urlError);
+        continue;
       }
-      console.warn(`⚠️ ${dateStr} returned ${response.status}`);
-      return [];
     }
     
-    const data: StormReportsResponse = await response.json();
-    
-    if (data.reports && Array.isArray(data.reports)) {
-      console.log(`📊 ${dateStr}: ${data.reports.length} reports`);
-      return data.reports;
-    }
-    
+    console.log(`📅 No reports found for ${dateStr} (tried all formats)`);
     return [];
+    
   } catch (error) {
     console.error(`❌ Error fetching ${dateStr}:`, error);
     return [];
