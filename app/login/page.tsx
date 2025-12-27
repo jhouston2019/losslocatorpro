@@ -25,18 +25,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-900">
-      <div className="bg-neutral-800 p-8 rounded-lg border border-neutral-700 shadow-lg w-full max-w-sm">
-        <h1 className="text-xl font-semibold mb-4 text-white">
-          Loss Locator Pro — Internal Console
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#1A1D29]">
+      <div className="bg-[#252936] p-8 rounded-lg border border-[#2F3441] shadow-panel w-full max-w-sm">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-10 w-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-[#00D9FF] to-[#00B8D9] font-bold text-slate-900 shadow-glow-cyan">
+            LL
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold text-white">
+              Loss Locator Pro
+            </h1>
+            <p className="text-xs text-[#B8BFCC]">
+              Internal Console
+            </p>
+          </div>
+        </div>
 
-        <p className="text-sm text-neutral-400 mb-6">
+        <p className="text-sm text-[#8B92A3] mb-6">
           Internal access only. Use your assigned credentials.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded-md bg-red-900/20 border border-red-800 text-red-300 text-sm">
+          <div className="mb-4 p-3 rounded-md bg-[#FF3B5C]/10 border border-[#FF3B5C]/30 text-[#FF3B5C] text-sm">
             {error}
           </div>
         )}
@@ -48,7 +58,7 @@ export default function LoginPage() {
             placeholder="Email"
             required
             disabled={loading}
-            className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500 disabled:opacity-50"
+            className="w-full p-3 rounded-md bg-[#1A1D29] border border-[#2F3441] text-white placeholder-[#8B92A3] focus:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 disabled:opacity-50 transition-all duration-200"
           />
 
           <input
@@ -57,13 +67,13 @@ export default function LoginPage() {
             placeholder="Password"
             required
             disabled={loading}
-            className="w-full p-2 rounded-md bg-neutral-900 border border-neutral-700 text-white placeholder-neutral-500 disabled:opacity-50"
+            className="w-full p-3 rounded-md bg-[#1A1D29] border border-[#2F3441] text-white placeholder-[#8B92A3] focus:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 disabled:opacity-50 transition-all duration-200"
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full p-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full p-3 rounded-md bg-[#00D9FF] hover:bg-[#00B8D9] text-slate-900 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-glow-cyan transition-all duration-200"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

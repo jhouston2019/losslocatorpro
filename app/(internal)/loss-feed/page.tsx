@@ -135,17 +135,17 @@ export default function LossFeedPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#1A1D29]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-700">Loading loss events...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00D9FF] mx-auto mb-4"></div>
+          <p className="text-[#B8BFCC]">Loading loss events...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#1A1D29]">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="card">
           <h1 className="card-header">Loss Feed</h1>
@@ -159,17 +159,17 @@ export default function LossFeedPage() {
           <input
             type="text"
             placeholder="Search address, ZIP, owner, event..."
-            className="w-full p-2 rounded border border-gray-300 bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            className="w-full p-3 rounded border border-[#2F3441] bg-[#1A1D29] text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] mb-4 transition-all duration-200"
             onChange={(e) => setSearch(e.target.value.toLowerCase())}
           />
-          <h2 className="text-xs font-medium text-slate-700">Filters</h2>
+          <h2 className="text-xs font-medium text-white">Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">State</label>
+              <label className="text-[#B8BFCC] font-medium">State</label>
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All States</option>
                 {availableStates.map((state) => (
@@ -181,11 +181,11 @@ export default function LossFeedPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Event type</label>
+              <label className="text-[#B8BFCC] font-medium">Event type</label>
               <select
                 value={eventFilter}
                 onChange={(e) => setEventFilter(e.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="Hail">Hail</option>
@@ -196,11 +196,11 @@ export default function LossFeedPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Property Type</label>
+              <label className="text-[#B8BFCC] font-medium">Property Type</label>
               <select
                 value={propertyTypeFilter}
                 onChange={(e) => setPropertyTypeFilter(e.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="residential">Residential</option>
@@ -209,7 +209,7 @@ export default function LossFeedPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">
+              <label className="text-[#B8BFCC] font-medium">
                 Severity threshold (score)
               </label>
               <input
@@ -218,25 +218,25 @@ export default function LossFeedPage() {
                 max={100}
                 value={severityThreshold}
                 onChange={(e) => setSeverityThreshold(Number(e.target.value))}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Income Percentile ≥</label>
+              <label className="text-[#B8BFCC] font-medium">Income Percentile ≥</label>
               <input
                 type="number"
                 min={0}
                 max={100}
                 value={incomePercentileFilter}
                 onChange={(e) => setIncomePercentileFilter(Number(e.target.value))}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                 placeholder="0-100"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">
+              <label className="text-[#B8BFCC] font-medium">
                 Claim probability ≥ (%)
               </label>
               <input
@@ -245,16 +245,16 @@ export default function LossFeedPage() {
                 max={100}
                 value={probThreshold}
                 onChange={(e) => setProbThreshold(Number(e.target.value))}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Has Phone</label>
+              <label className="text-[#B8BFCC] font-medium">Has Phone</label>
               <select
                 value={phoneFilter}
                 onChange={(e) => setPhoneFilter(e.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="yes">Yes</option>
@@ -263,24 +263,24 @@ export default function LossFeedPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Phone Confidence ≥</label>
+              <label className="text-[#B8BFCC] font-medium">Phone Confidence ≥</label>
               <input
                 type="number"
                 min={0}
                 max={100}
                 value={minPhoneConfidence}
                 onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                 placeholder="0-100"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 font-medium">Status</label>
+              <label className="text-[#B8BFCC] font-medium">Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="Unreviewed">Unreviewed</option>
@@ -293,21 +293,21 @@ export default function LossFeedPage() {
         </section>
 
         <section className="card p-0">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-slate-900">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#2F3441]">
+            <h2 className="text-sm font-semibold text-white">
               Loss Feed Results
             </h2>
             <button
               type="button"
               onClick={() => setSortDesc((v) => !v)}
-              className="text-xs text-slate-600 hover:text-slate-900"
+              className="text-xs text-[#B8BFCC] hover:text-[#00D9FF] transition-colors duration-200"
             >
               Sort by timestamp {sortDesc ? '▼' : '▲'}
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-slate-700 border-b border-gray-200 sticky top-0">
+              <thead className="bg-[#1A1D29] text-[#B8BFCC] border-b border-[#2F3441] sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-xs">
                     Timestamp
@@ -345,7 +345,7 @@ export default function LossFeedPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[#2F3441]">
                 {filtered.map((row) => {
                   const property = Array.isArray(row.loss_property) ? row.loss_property[0] : row.loss_property;
                   const demographic = Array.isArray(row.zip_demographic) ? row.zip_demographic[0] : row.zip_demographic;
@@ -356,52 +356,52 @@ export default function LossFeedPage() {
                     : hasPhone && phoneConfidence < 60 
                     ? '***-***-****' 
                     : '—';
-                  const severityColor = row.severity >= 75 ? 'border-red-600' : row.severity >= 50 ? 'border-amber-500' : 'border-green-600';
+                  const severityColor = row.severity >= 75 ? 'border-[#FF3B5C]' : row.severity >= 50 ? 'border-[#FF8A3D]' : 'border-[#00E5A0]';
                   
                   return (
                     <tr
                       key={row.id}
-                      className={`hover:bg-gray-50 transition border-l-2 ${severityColor}`}
+                      className={`hover:bg-[#2F3441]/30 transition border-l-2 ${severityColor}`}
                     >
-                      <td className="px-4 py-3 align-top text-slate-900 whitespace-nowrap text-xs">
+                      <td className="px-4 py-3 align-top text-white whitespace-nowrap text-xs">
                         {new Date(row.event_timestamp).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {row.state_code || '—'}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700 max-w-xs truncate">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC] max-w-xs truncate">
                         {property?.address || '—'}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {property?.owner_name || '—'}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-900 font-medium">
+                      <td className="px-4 py-3 align-top text-white font-medium">
                         {row.event_type}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {row.is_commercial ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#00D9FF]/20 text-[#00D9FF] border border-[#00D9FF]/30">
                             Commercial
                           </span>
                         ) : row.property_type === 'residential' ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#00E5A0]/20 text-[#00E5A0] border border-[#00E5A0]/30">
                             Residential
                           </span>
                         ) : (
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-900 font-semibold">
+                      <td className="px-4 py-3 align-top text-white font-semibold">
                         {row.severity}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {demographic?.income_percentile ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
                             demographic.income_percentile >= 90 
-                              ? 'bg-amber-50 text-amber-700' 
+                              ? 'bg-[#FFB020]/20 text-[#FFB020] border-[#FFB020]/30' 
                               : demographic.income_percentile >= 75 
-                              ? 'bg-orange-50 text-orange-700' 
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-[#FF8A3D]/20 text-[#FF8A3D] border-[#FF8A3D]/30' 
+                              : 'bg-[#8B92A3]/20 text-[#8B92A3] border-[#8B92A3]/30'
                           }`}>
                             {demographic.income_percentile}%
                           </span>
@@ -409,11 +409,11 @@ export default function LossFeedPage() {
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700 text-xs">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC] text-xs">
                         {hasPhone ? (
                           <div className="flex flex-col gap-0.5">
                             <span>{phoneDisplay}</span>
-                            <span className="text-[10px] text-slate-500">
+                            <span className="text-[10px] text-[#8B92A3]">
                               conf: {phoneConfidence}%
                             </span>
                           </div>
@@ -421,16 +421,16 @@ export default function LossFeedPage() {
                           '—'
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {((row.claim_probability || 0) * 100).toFixed(0)}%
                       </td>
-                      <td className="px-4 py-3 align-top text-slate-700">
+                      <td className="px-4 py-3 align-top text-[#B8BFCC]">
                         {row.status}
                       </td>
                       <td className="px-4 py-3 align-top">
                         <a
                           href={`/property/${row.id}`}
-                          className="text-xs font-medium text-blue-600 hover:text-blue-700 underline-offset-2 hover:underline"
+                          className="text-xs font-medium text-[#00D9FF] hover:text-[#00B8D9] underline-offset-2 hover:underline transition-colors duration-200"
                         >
                           View
                         </a>
@@ -442,7 +442,7 @@ export default function LossFeedPage() {
                   <tr>
                     <td
                       colSpan={12}
-                      className="px-3 py-4 text-center text-sm text-slate-500"
+                      className="px-3 py-4 text-center text-sm text-[#8B92A3]"
                     >
                       No rows match the current filters.
                     </td>
@@ -451,9 +451,9 @@ export default function LossFeedPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t border-gray-200 text-xs text-slate-600 bg-gray-50">
+          <div className="px-4 py-3 border-t border-[#2F3441] text-xs text-[#8B92A3] bg-[#1A1D29]">
             <p>
-              <strong>Note:</strong> Contact data sourced from public records; accuracy may vary. 
+              <strong className="text-[#B8BFCC]">Note:</strong> Contact data sourced from public records; accuracy may vary. 
               Phone numbers with confidence &lt; 60% are masked for privacy.
             </p>
           </div>
