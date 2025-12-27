@@ -159,7 +159,7 @@ export default function LossFeedPage() {
           <input
             type="text"
             placeholder="Search address, ZIP, owner, event..."
-            className="w-full p-3 rounded border border-[#2F3441] bg-[#1A1D29] text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] mb-4 transition-all duration-200"
+            className="w-full p-3 rounded border border-[#3A4556] bg-[#1A1D29] text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] mb-4 transition-all duration-200"
             onChange={(e) => setSearch(e.target.value.toLowerCase())}
           />
           <h2 className="text-xs font-medium text-white">Filters</h2>
@@ -169,7 +169,7 @@ export default function LossFeedPage() {
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All States</option>
                 {availableStates.map((state) => (
@@ -185,7 +185,7 @@ export default function LossFeedPage() {
               <select
                 value={eventFilter}
                 onChange={(e) => setEventFilter(e.target.value)}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="Hail">Hail</option>
@@ -200,7 +200,7 @@ export default function LossFeedPage() {
               <select
                 value={propertyTypeFilter}
                 onChange={(e) => setPropertyTypeFilter(e.target.value)}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="residential">Residential</option>
@@ -218,7 +218,7 @@ export default function LossFeedPage() {
                 max={100}
                 value={severityThreshold}
                 onChange={(e) => setSeverityThreshold(Number(e.target.value))}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               />
             </div>
 
@@ -230,7 +230,7 @@ export default function LossFeedPage() {
                 max={100}
                 value={incomePercentileFilter}
                 onChange={(e) => setIncomePercentileFilter(Number(e.target.value))}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                 placeholder="0-100"
               />
             </div>
@@ -245,7 +245,7 @@ export default function LossFeedPage() {
                 max={100}
                 value={probThreshold}
                 onChange={(e) => setProbThreshold(Number(e.target.value))}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               />
             </div>
 
@@ -254,7 +254,7 @@ export default function LossFeedPage() {
               <select
                 value={phoneFilter}
                 onChange={(e) => setPhoneFilter(e.target.value)}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="yes">Yes</option>
@@ -270,7 +270,7 @@ export default function LossFeedPage() {
                 max={100}
                 value={minPhoneConfidence}
                 onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                 placeholder="0-100"
               />
             </div>
@@ -280,7 +280,7 @@ export default function LossFeedPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
               >
                 <option value="all">All</option>
                 <option value="Unreviewed">Unreviewed</option>
@@ -293,7 +293,7 @@ export default function LossFeedPage() {
         </section>
 
         <section className="card p-0">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#2F3441]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#3A4556]">
             <h2 className="text-sm font-semibold text-white">
               Loss Feed Results
             </h2>
@@ -307,7 +307,7 @@ export default function LossFeedPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#1A1D29] text-[#B8BFCC] border-b border-[#2F3441] sticky top-0">
+              <thead className="bg-[#1A1D29] text-[#B8BFCC] border-b border-[#3A4556] sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-xs">
                     Timestamp
@@ -361,7 +361,7 @@ export default function LossFeedPage() {
                   return (
                     <tr
                       key={row.id}
-                      className={`hover:bg-[#2F3441]/30 transition border-l-2 ${severityColor}`}
+                      className={`hover:bg-[#3A4556]/30 transition border-l-2 ${severityColor}`}
                     >
                       <td className="px-4 py-3 align-top text-white whitespace-nowrap text-xs">
                         {new Date(row.event_timestamp).toLocaleString()}
@@ -451,7 +451,7 @@ export default function LossFeedPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t border-[#2F3441] text-xs text-[#8B92A3] bg-[#1A1D29]">
+          <div className="px-4 py-3 border-t border-[#3A4556] text-xs text-[#8B92A3] bg-[#1A1D29]">
             <p>
               <strong className="text-[#B8BFCC]">Note:</strong> Contact data sourced from public records; accuracy may vary. 
               Phone numbers with confidence &lt; 60% are masked for privacy.

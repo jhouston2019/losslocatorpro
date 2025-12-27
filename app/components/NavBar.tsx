@@ -37,7 +37,7 @@ export default function NavBar() {
   };
 
   return (
-    <header className="w-full bg-[#252936] border-b border-[#2F3441]" style={{ boxShadow: 'var(--panel-shadow)' }}>
+    <header className="w-full bg-[#2D3748] border-b border-[#3A4556]" style={{ boxShadow: 'var(--panel-shadow)' }}>
       <div className="mx-auto max-w-7xl flex items-center justify-between">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-[#00D9FF] to-[#00B8D9] font-bold text-slate-900 shadow-glow-cyan">
@@ -63,7 +63,7 @@ export default function NavBar() {
                 key={item.href}
                 href={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-  ${active ? "bg-[#00D9FF] text-slate-900 shadow-glow-cyan" : "text-[#B8BFCC] hover:bg-[#2F3441] hover:text-white"}
+  ${active ? "bg-[#00D9FF] text-slate-900 shadow-glow-cyan" : "text-[#B8BFCC] hover:bg-[#3A4556] hover:text-white"}
 `}
               >
                 {item.label}
@@ -79,7 +79,7 @@ export default function NavBar() {
             type="button"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="rounded-lg border border-[#3A3F4E] bg-[#2F3441] px-3 py-1.5 text-[11px] font-medium text-gray-300 hover:bg-[#3A3F4E] hover:border-[#00D9FF] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="rounded-lg border border-[#4A5568] bg-[#3A4556] px-3 py-1.5 text-[11px] font-medium text-gray-300 hover:bg-[#4A5568] hover:border-[#00D9FF] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {signingOut ? 'Signing out...' : 'Sign out'}
           </button>

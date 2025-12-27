@@ -183,7 +183,7 @@ export default function LeadRoutingPage() {
                     className={
                       activeStatus === status
                         ? 'rounded border border-[#00D9FF] bg-[#00D9FF] px-2.5 py-1 text-slate-900 font-semibold transition-all duration-200'
-                        : 'rounded border border-[#2F3441] bg-[#2F3441] px-2.5 py-1 text-[#B8BFCC] hover:bg-[#3A3F4E] hover:border-[#00D9FF] transition-all duration-200'
+                        : 'rounded border border-[#3A4556] bg-[#3A4556] px-2.5 py-1 text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] transition-all duration-200'
                     }
                   >
                     {status}
@@ -198,7 +198,7 @@ export default function LeadRoutingPage() {
                 type="checkbox"
                 checked={commercialOnly}
                 onChange={(e) => setCommercialOnly(e.target.checked)}
-                className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
               />
               Commercial properties only
             </label>
@@ -207,7 +207,7 @@ export default function LeadRoutingPage() {
                 type="checkbox"
                 checked={phoneRequired}
                 onChange={(e) => setPhoneRequired(e.target.checked)}
-                className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
               />
               Phone number required
             </label>
@@ -215,7 +215,7 @@ export default function LeadRoutingPage() {
         </section>
 
         <section className="relative card p-0">
-          <div className="px-4 py-3 border-b border-[#2F3441] flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-[#3A4556] flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">
               Unrouted Leads
             </h2>
@@ -225,7 +225,7 @@ export default function LeadRoutingPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#1A1D29] text-[#B8BFCC] border-b border-[#2F3441]">
+              <thead className="bg-[#1A1D29] text-[#B8BFCC] border-b border-[#3A4556]">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-xs">
                     Property address
@@ -261,7 +261,7 @@ export default function LeadRoutingPage() {
                   return (
                     <tr
                       key={lead.id}
-                      className={`hover:bg-[#2F3441]/30 transition border-l-2 ${severityColor}`}
+                      className={`hover:bg-[#3A4556]/30 transition border-l-2 ${severityColor}`}
                     >
                       <td className="px-4 py-3 align-top text-white font-medium">
                         {lead.address}
@@ -325,7 +325,7 @@ export default function LeadRoutingPage() {
                         <button
                           type="button"
                           onClick={() => openPanel(lead.id)}
-                          className="rounded border border-[#2F3441] bg-[#2F3441] px-2 py-1 text-xs font-medium text-[#B8BFCC] hover:bg-[#3A3F4E] hover:border-[#00D9FF] transition-all duration-200"
+                          className="rounded border border-[#3A4556] bg-[#3A4556] px-2 py-1 text-xs font-medium text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] transition-all duration-200"
                         >
                           Assign
                         </button>
@@ -348,7 +348,7 @@ export default function LeadRoutingPage() {
           </div>
 
           <div
-            className={`fixed top-0 right-0 h-full w-96 bg-[#252936] border-l border-[#2F3441] p-6 transition-transform duration-300 ${
+            className={`fixed top-0 right-0 h-full w-96 bg-[#2D3748] border-l border-[#3A4556] p-6 transition-transform duration-300 ${
               panelLeadId ? 'translate-x-0' : 'translate-x-full'
             }`}
             style={{ boxShadow: '-2px 0 8px rgba(0,0,0,0.4)' }}
@@ -376,10 +376,10 @@ export default function LeadRoutingPage() {
                 placeholder="Assignee name"
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full p-3 bg-[#1A1D29] border border-[#2F3441] rounded text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
+                className="w-full p-3 bg-[#1A1D29] border border-[#3A4556] rounded text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
               />
               <select
-                className="w-full p-3 bg-[#1A1D29] border border-[#2F3441] rounded text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
+                className="w-full p-3 bg-[#1A1D29] border border-[#3A4556] rounded text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
                 value={assigneeType}
                 onChange={(e) => setAssigneeType(e.target.value)}
               >
@@ -388,7 +388,7 @@ export default function LeadRoutingPage() {
                 <option value="contractor-partner">Contractor Partner</option>
               </select>
               <select
-                className="w-full p-3 bg-[#1A1D29] border border-[#2F3441] rounded text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
+                className="w-full p-3 bg-[#1A1D29] border border-[#3A4556] rounded text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
               >
@@ -397,7 +397,7 @@ export default function LeadRoutingPage() {
                 <option value="Low">Low priority</option>
               </select>
               <textarea
-                className="w-full h-32 p-3 bg-[#1A1D29] border border-[#2F3441] rounded text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
+                className="w-full h-32 p-3 bg-[#1A1D29] border border-[#3A4556] rounded text-white placeholder-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF] transition-all duration-200"
                 placeholder="Notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

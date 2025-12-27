@@ -160,7 +160,7 @@ export default function DashboardPage() {
                     <select
                       value={selectedState}
                       onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                     >
                       <option value="all">All States</option>
                       {availableStates.map((state) => (
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
-                      className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                     >
                       <option value="all">All Types</option>
                       <option value="residential">Residential</option>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     <select
                       value={hasPhoneFilter}
                       onChange={(e) => setHasPhoneFilter(e.target.value)}
-                      className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                     >
                       <option value="all">All</option>
                       <option value="yes">Yes</option>
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                       max={100}
                       value={minIncomePercentile}
                       onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
-                      className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                       placeholder="0-100"
                     />
                   </div>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                       max={100}
                       value={minPhoneConfidence}
                       onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
-                      className="w-full rounded border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                       placeholder="0-100"
                     />
                   </div>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                         setHasPhoneFilter('all');
                         setMinPhoneConfidence(0);
                       }}
-                      className="w-full rounded border border-[#2F3441] bg-[#2F3441] px-2 py-1.5 text-[#B8BFCC] hover:bg-[#3A3F4E] hover:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 transition-all duration-200"
+                      className="w-full rounded border border-[#3A4556] bg-[#3A4556] px-2 py-1.5 text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 transition-all duration-200"
                     >
                       Reset Filters
                     </button>
@@ -256,7 +256,7 @@ export default function DashboardPage() {
               <div className="overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#2F3441]">
+                    <tr className="border-b border-[#3A4556]">
                       <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">Event</th>
                       <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Severity</th>
                     </tr>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
               <div className="overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#2F3441]">
+                    <tr className="border-b border-[#3A4556]">
                       <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">ZIP</th>
                       <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Income</th>
                     </tr>

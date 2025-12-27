@@ -105,11 +105,11 @@ export default function AdminPage() {
                   <input
                     type="email"
                     placeholder="new.user@internal"
-                    className="flex-1 rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="flex-1 rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                   <button
                     type="button"
-                    className="rounded-md border border-[#2F3441] bg-[#2F3441] px-3 py-1.5 text-[11px] font-medium text-[#B8BFCC] hover:bg-[#3A3F4E] hover:border-[#00D9FF] transition-all duration-200"
+                    className="rounded-md border border-[#3A4556] bg-[#3A4556] px-3 py-1.5 text-[11px] font-medium text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] transition-all duration-200"
                   >
                     Invite
                   </button>
@@ -144,11 +144,11 @@ export default function AdminPage() {
                   <input
                     type="text"
                     placeholder="Create new API key"
-                    className="flex-1 rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="flex-1 rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                   <button
                     type="button"
-                    className="rounded-md border border-[#2F3441] bg-[#2F3441] px-3 py-1.5 text-[11px] font-medium text-[#B8BFCC] hover:bg-[#3A3F4E] hover:border-[#00D9FF] transition-all duration-200"
+                    className="rounded-md border border-[#3A4556] bg-[#3A4556] px-3 py-1.5 text-[11px] font-medium text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] transition-all duration-200"
                   >
                     Generate
                   </button>
@@ -173,7 +173,7 @@ export default function AdminPage() {
                     onChange={(e) => setMinClaimProb(Number(e.target.value))}
                     min={0}
                     max={100}
-                    className="mt-1 w-full rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="mt-1 w-full rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export default function AdminPage() {
                     onChange={(e) => setMinSeverity(Number(e.target.value))}
                     min={0}
                     max={100}
-                    className="mt-1 w-full rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="mt-1 w-full rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <div>
@@ -199,7 +199,7 @@ export default function AdminPage() {
                     onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
                     min={0}
                     max={100}
-                    className="mt-1 w-full rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="mt-1 w-full rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <div>
@@ -212,7 +212,7 @@ export default function AdminPage() {
                     onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
                     min={0}
                     max={100}
-                    className="mt-1 w-full rounded-md border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="mt-1 w-full rounded-md border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={autoCreateLead}
                     onChange={(e) => setAutoCreateLead(e.target.checked)}
-                    className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                    className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
                   />
                   Auto-create lead when severity &gt;= {minSeverity} and claim
                   probability &gt;= {minClaimProb}%.
@@ -248,7 +248,7 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={nightlyExport}
                     onChange={(e) => setNightlyExport(e.target.checked)}
-                    className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                    className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
                   />
                   Nightly export of converted leads to CRM.
                 </label>
@@ -268,7 +268,7 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={enableResidentialLeads}
                     onChange={(e) => setEnableResidentialLeads(e.target.checked)}
-                    className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                    className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
                   />
                   Enable residential leads for routing.
                 </label>
@@ -277,7 +277,7 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={commercialOnlyRouting}
                     onChange={(e) => setCommercialOnlyRouting(e.target.checked)}
-                    className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                    className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
                   />
                   Only route commercial properties.
                 </label>
@@ -286,7 +286,7 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={phoneRequiredRouting}
                     onChange={(e) => setPhoneRequiredRouting(e.target.checked)}
-                    className="h-3 w-3 rounded border border-[#2F3441] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
+                    className="h-3 w-3 rounded border border-[#3A4556] bg-[#1A1D29] text-[#00D9FF] focus:ring-[#00D9FF]"
                   />
                   Require phone number with confidence &gt;= {minPhoneConfidence}% for routing.
                 </label>

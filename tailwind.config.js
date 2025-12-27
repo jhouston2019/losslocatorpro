@@ -11,7 +11,7 @@ module.exports = {
       colors: {
         // Emergency Operations Center Theme
         ciNavy: "#1A1D29",
-        ciSlate: "#252936",
+        ciSlate: "#2D3748",
         ciCyan: "#00D9FF",
         ciCyanHover: "#00B8D9",
         ciAmber: "#FFB020",
@@ -21,7 +21,7 @@ module.exports = {
         ciTextPrimary: "#FFFFFF",
         ciTextSecondary: "#B8BFCC",
         ciTextMuted: "#8B92A3",
-        ciBorder: "#2F3441",
+        ciBorder: "#3A4556",
       },
       boxShadow: {
         "ci-soft": "0 4px 12px rgba(0, 0, 0, 0.4)",

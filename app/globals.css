@@ -10,9 +10,9 @@
   
   /* Base */
   --app-bg: #1A1D29;
-  --panel-bg: #252936;
-  --card-bg: #252936;
-  --border-color: #2F3441;
+  --panel-bg: #2D3748;
+  --card-bg: #2D3748;
+  --border-color: #3A4556;
   
   /* Text */
   --text-primary: #FFFFFF;
@@ -76,7 +76,7 @@ a {
 }
 
 .ci-card {
-  @apply bg-[#252936] rounded-lg shadow-sm border border-[#2F3441];
+  @apply bg-[#2D3748] rounded-lg shadow-sm border border-[#3A4556];
 }
 
 .ci-button-primary {
@@ -88,7 +88,7 @@ a {
 
 .ci-button-secondary {
   @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium
-  text-gray-300 bg-[#2F3441] hover:bg-[#3A3F4E] border border-[#3A3F4E]
+  text-gray-300 bg-[#3A4556] hover:bg-[#4A5568] border border-[#4A5568]
   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00D9FF]
   transition-all duration-200;
 }
@@ -110,7 +110,7 @@ a {
 }
 
 .card {
-  @apply bg-[#252936] border border-[#2F3441] rounded-lg p-5;
+  @apply bg-[#2D3748] border border-[#3A4556] rounded-lg p-5;
   box-shadow: var(--panel-shadow);
 }
 

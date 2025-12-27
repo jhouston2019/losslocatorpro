@@ -80,7 +80,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   return (
     <div className="min-h-screen bg-[#1A1D29] relative">
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 rounded-md bg-[#252936] border border-[#2F3441] px-3 py-2 text-xs text-white shadow-panel">
+        <div className="fixed bottom-4 right-4 rounded-md bg-[#2D3748] border border-[#3A4556] px-3 py-2 text-xs text-white shadow-panel">
           {toastMessage}
         </div>
       )}
@@ -102,7 +102,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
             <button
               type="button"
               onClick={handleExport}
-              className="px-3 py-2 bg-[#2F3441] border border-[#2F3441] rounded-lg hover:bg-[#3A3F4E] hover:border-[#00D9FF] text-xs font-medium text-[#B8BFCC] transition-all duration-200"
+              className="px-3 py-2 bg-[#3A4556] border border-[#3A4556] rounded-lg hover:bg-[#4A5568] hover:border-[#00D9FF] text-xs font-medium text-[#B8BFCC] transition-all duration-200"
             >
               Export property report (PDF)
             </button>
@@ -197,7 +197,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                   <label className="text-[#B8BFCC]">
                     Outreach needed (Y/N)
                   </label>
-                  <select className="rounded-sm border border-[#2F3441] bg-[#1A1D29] px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]">
+                  <select className="rounded-sm border border-[#3A4556] bg-[#1A1D29] px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]">
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>
@@ -211,14 +211,14 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                     min={0}
                     max={100}
                     defaultValue={93}
-                    className="w-20 rounded-sm border border-[#2F3441] bg-[#1A1D29] px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="w-20 rounded-sm border border-[#3A4556] bg-[#1A1D29] px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[#B8BFCC]">Internal notes</label>
                   <textarea
                     rows={3}
-                    className="w-full resize-none rounded-sm border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    className="w-full resize-none rounded-sm border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <div className="space-y-1">
@@ -249,7 +249,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
                   <input
                     type="text"
                     placeholder="Preferred vendor / notes"
-                  className="w-full rounded-sm border border-[#2F3441] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                  className="w-full rounded-sm border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white placeholder:text-[#8B92A3] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
                   />
                 </div>
                 <button
