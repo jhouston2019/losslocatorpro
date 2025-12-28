@@ -78,7 +78,7 @@ export default function PropertyPage({ params }: PropertyPageProps) {
   const timeline = parseTimeline(property.timeline);
 
   return (
-    <div className="min-h-screen bg-[#1A1D29] relative">
+    <div className="min-h-screen bg-[#0f172a] relative">
       {toastMessage && (
         <div className="fixed bottom-4 right-4 rounded-md bg-[#2D3748] border border-[#3A4556] px-3 py-2 text-xs text-white shadow-panel">
           {toastMessage}

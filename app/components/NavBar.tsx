@@ -37,7 +37,7 @@ export default function NavBar() {
   };
 
   return (
-    <header className="w-full bg-[#2D3748] border-b border-[#3A4556]" style={{ boxShadow: 'var(--panel-shadow)' }}>
+    <header className="w-full bg-[#1e293b] border-b border-[#334155]" style={{ boxShadow: 'var(--panel-shadow)' }}>
       <div className="mx-auto max-w-7xl flex items-center justify-between">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-[#00D9FF] to-[#00B8D9] font-bold text-slate-900 shadow-glow-cyan">

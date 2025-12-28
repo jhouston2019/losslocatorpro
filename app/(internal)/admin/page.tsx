@@ -73,7 +73,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1A1D29]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00D9FF] mx-auto mb-4"></div>
           <p className="text-[#B8BFCC]">Loading admin settings...</p>
@@ -83,7 +83,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1D29]">
+    <div className="min-h-screen bg-[#0f172a]">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="card">
           <h1 className="card-header">Admin</h1>

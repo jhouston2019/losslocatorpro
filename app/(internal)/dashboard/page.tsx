@@ -109,38 +109,38 @@ export default function DashboardPage() {
   } = metrics;
 
   return (
-    <div className="min-h-screen bg-[#1A1D29]">
+    <div className="min-h-screen bg-[#0f172a]">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ZONE 1: ACTION SUMMARY - Top KPI Row */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card p-4 border-l-4 border-[#00D9FF]">
+          <div className="card p-4 border-l-4 border-[#f59e0b]">
             <div className="flex items-baseline justify-between">
               <div>
-                <p className="text-3xl font-bold text-white">{dailyLossCount}</p>
-                <p className="text-sm font-medium text-[#B8BFCC] mt-1">Daily Loss Count</p>
+                <p className="kpi-value kpi-loss">{dailyLossCount}</p>
+                <p className="text-sm font-medium text-[#cbd5e1] mt-1">Daily Loss Count</p>
               </div>
             </div>
-            <p className="text-xs text-[#8B92A3] mt-2">24h monitoring</p>
+            <p className="text-xs text-muted mt-2">24h monitoring</p>
           </div>
 
-          <div className="card p-4 border-l-4 border-[#FFB020]">
+          <div className="card p-4 border-l-4 border-[#10b981]">
             <div className="flex items-baseline justify-between">
               <div>
-                <p className="text-3xl font-bold text-white">{highValueZips.length}</p>
-                <p className="text-sm font-medium text-[#B8BFCC] mt-1">High-Value ZIPs</p>
+                <p className="kpi-value kpi-zip">{highValueZips.length}</p>
+                <p className="text-sm font-medium text-[#cbd5e1] mt-1">High-Value ZIPs</p>
               </div>
             </div>
-            <p className="text-xs text-[#8B92A3] mt-2">24h top 10% income</p>
+            <p className="text-xs text-muted mt-2">24h top 10% income</p>
           </div>
 
-          <div className="card p-4 border-l-4 border-[#00E5A0]">
+          <div className="card p-4 border-l-4 border-[#38bdf8]">
             <div className="flex items-baseline justify-between">
               <div>
-                <p className="text-3xl font-bold text-white">{convertedPct}%</p>
-                <p className="text-sm font-medium text-[#B8BFCC] mt-1">Lead Conversion</p>
+                <p className="kpi-value kpi-conversion">{convertedPct}%</p>
+                <p className="text-sm font-medium text-[#cbd5e1] mt-1">Lead Conversion</p>
               </div>
             </div>
-            <p className="text-xs text-[#8B92A3] mt-2">7d action recommended</p>
+            <p className="text-xs text-muted mt-2">7d action recommended</p>
           </div>
         </section>
 
@@ -243,16 +243,24 @@ export default function DashboardPage() {
 
             {/* Map - Primary Canvas */}
             <div className="card p-4">
-              <h2 className="text-base font-semibold text-white mb-3">Recent Loss Activity Map</h2>
-              <RealMap events={recentEvents} />
+              <h2 className="card-header">Recent Loss Activity Map</h2>
+              {recentEvents.length === 0 ? (
+                <div className="map-empty-state">
+                  <p className="status-text">
+                    Monitoring active data sources — no qualifying loss events in the last 24 hours.
+                  </p>
+                </div>
+              ) : (
+                <RealMap events={recentEvents} />
+              )}
             </div>
           </div>
 
           {/* ZONE 3: FLOATING INTELLIGENCE PANELS */}
           <aside className="space-y-6">
             {/* Top 10 Loss Events - Table Format */}
-            <div className="card p-4">
-              <h2 className="text-base font-semibold text-white mb-3">Top 10 Loss Events by Severity</h2>
+            <div className="card priority p-4">
+              <h2 className="card-header">Top 10 Loss Events by Severity</h2>
               <div className="overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -281,8 +289,8 @@ export default function DashboardPage() {
             </div>
 
             {/* High-Value ZIPs - Table Format */}
-            <div className="card p-4">
-              <h2 className="text-base font-semibold text-white mb-3">High-Value ZIPs (24h)</h2>
+            <div className="card secondary p-4">
+              <h2 className="card-header">High-Value ZIPs (24h)</h2>
               <div className="overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
@@ -306,25 +314,25 @@ export default function DashboardPage() {
             {/* Quick Links - Secondary Panels */}
             <div className="space-y-3">
               <a href="/loss-feed">
-                <div className="card p-3 hover:border-[#00D9FF] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-white">Loss Feed</p>
-                  <p className="text-xs text-[#B8BFCC] mt-1">
+                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+                  <p className="text-sm font-semibold text-[#e5e7eb]">Loss Feed</p>
+                  <p className="text-xs text-muted mt-1">
                     Full table of ingested events and scoring
                   </p>
                 </div>
               </a>
               <a href="/lead-routing">
-                <div className="card p-3 hover:border-[#00D9FF] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-white">Lead Routing</p>
-                  <p className="text-xs text-[#B8BFCC] mt-1">
+                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+                  <p className="text-sm font-semibold text-[#e5e7eb]">Lead Routing</p>
+                  <p className="text-xs text-muted mt-1">
                     Assign and track outreach on high-priority leads
                   </p>
                 </div>
               </a>
               <a href="/property/10001">
-                <div className="card p-3 hover:border-[#00D9FF] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-white">Property Lookup</p>
-                  <p className="text-xs text-[#B8BFCC] mt-1">
+                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+                  <p className="text-sm font-semibold text-[#e5e7eb]">Property Lookup</p>
+                  <p className="text-xs text-muted mt-1">
                     Inspect property-level events and risk layers
                   </p>
                 </div>
