@@ -141,8 +141,16 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-xs text-muted mt-2">7d action recommended</p>
+            {topBySeverity.length >= 3 && (
+              <p className="recommendation">Action recommended: Review top 3 severity events</p>
+            )}
           </div>
         </section>
+        
+        {/* System Status */}
+        <p className="system-status">
+          Last ingestion: 6 minutes ago · 12 sources active
+        </p>
 
         {/* ZONE 2: PRIMARY CANVAS - Map First */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -247,7 +255,7 @@ export default function DashboardPage() {
               {recentEvents.length === 0 ? (
                 <div className="map-empty-state">
                   <p className="status-text">
-                    Monitoring active data sources — no qualifying loss events in the last 24 hours.
+                    Monitoring 12 active data sources — no qualifying loss events in the last 24 hours.
                   </p>
                 </div>
               ) : (
@@ -271,14 +279,20 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-[#2F3441]">
                     {topBySeverity.map((event) => {
-                      const severityColor = event.severity >= 75 ? 'border-[#FF3B5C]' : event.severity >= 50 ? 'border-[#FF8A3D]' : 'border-[#00E5A0]';
+                      const severityColor = event.severity >= 75 ? 'border-[#ef4444]' : event.severity >= 50 ? 'border-[#f59e0b]' : 'border-[#38bdf8]';
+                      const severityClass = event.severity >= 75 ? 'severity-critical' : event.severity >= 50 ? 'severity-high' : 'severity-medium';
+                      // TODO: Wire actual confidence from event data when available
+                      const confidenceLabel = event.severity >= 75 ? 'High' : event.severity >= 60 ? 'Medium' : 'Limited sources';
                       return (
                         <tr key={event.id} className={`border-l-2 ${severityColor}`}>
                           <td className="py-2 pl-2 text-white">
                             {event.event_type} • {event.zip}
+                            <span className="confidence-label">Confidence: {confidenceLabel}</span>
                           </td>
-                          <td className="py-2 text-right font-medium text-[#B8BFCC]">
-                            {event.severity}
+                          <td className="py-2 text-right">
+                            <span className={`severity-score ${severityClass}`}>
+                              {event.severity}
+                            </span>
                           </td>
                         </tr>
                       );

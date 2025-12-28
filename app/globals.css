@@ -185,3 +185,42 @@ a {
 .status-text {
   max-width: 400px;
 }
+
+/* Temporal Confidence & System Status */
+.system-status {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Severity Scoring */
+.severity-score {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.severity-critical {
+  color: var(--accent-critical);
+}
+
+.severity-high {
+  color: var(--accent-warning);
+}
+
+.severity-medium {
+  color: var(--accent-info);
+}
+
+/* Confidence Labels */
+.confidence-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+/* Recommendations */
+.recommendation {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
