@@ -225,40 +225,32 @@ a {
   color: var(--text-muted);
 }
 
-/* Dashboard Grid - Horizontal Card Row */
-.dashboard-grid {
+/* Dashboard Row 3 - Wide Centered Cards */
+.dashboard-row-3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
   width: 100%;
 }
 
+/* Desktop: 2 equal-width cards, each spanning half */
 @media (min-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .dashboard-grid {
+  .dashboard-row-3 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 767px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard-row-3 {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
-}
-
-.dashboard-card .card {
-  height: 100%;
+/* Mobile: stack vertically */
+@media (max-width: 767px) {
+  .dashboard-row-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Dashboard Background - Removed */

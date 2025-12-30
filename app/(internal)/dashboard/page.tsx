@@ -152,11 +152,44 @@ export default function DashboardPage() {
           Last ingestion: 6 minutes ago · 12 sources active
         </p>
 
-        {/* ZONE 2: HORIZONTAL DASHBOARD CARDS - Second Row */}
-        <section className="dashboard-grid">
-          {/* Top 10 Loss Events - Compact Card */}
-          <div className="card priority p-4 dashboard-card">
-            <h2 className="card-header text-base">Top 10 Loss Events by Severity</h2>
+        {/* ROW 2: Quick Link Cards - Match Row 1 Size */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Loss Feed */}
+          <a href="/loss-feed">
+            <div className="card secondary p-4 border-l-4 border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+              <p className="text-sm font-medium text-[#cbd5e1] mb-1">Loss Feed</p>
+              <p className="text-xs text-muted">
+                Full table of ingested events and scoring
+              </p>
+            </div>
+          </a>
+
+          {/* Lead Routing */}
+          <a href="/lead-routing">
+            <div className="card secondary p-4 border-l-4 border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+              <p className="text-sm font-medium text-[#cbd5e1] mb-1">Lead Routing</p>
+              <p className="text-xs text-muted">
+                Assign and track outreach on high-priority leads
+              </p>
+            </div>
+          </a>
+
+          {/* Property Lookup */}
+          <a href="/property/10001">
+            <div className="card secondary p-4 border-l-4 border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
+              <p className="text-sm font-medium text-[#cbd5e1] mb-1">Property Lookup</p>
+              <p className="text-xs text-muted">
+                Inspect property-level events and risk layers
+              </p>
+            </div>
+          </a>
+        </section>
+
+        {/* ROW 3: Wide Data Cards - Centered, Two Cards Only */}
+        <section className="dashboard-row-3">
+          {/* Top 10 Loss Events by Severity */}
+          <div className="card priority p-4">
+            <h2 className="card-header">Top 10 Loss Events by Severity</h2>
             <div className="overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
@@ -166,16 +199,18 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2F3441]">
-                  {topBySeverity.slice(0, 5).map((event) => {
+                  {topBySeverity.map((event) => {
                     const severityColor = event.severity >= 75 ? 'border-[#ef4444]' : event.severity >= 50 ? 'border-[#f59e0b]' : 'border-[#38bdf8]';
                     const severityClass = event.severity >= 75 ? 'severity-critical' : event.severity >= 50 ? 'severity-high' : 'severity-medium';
+                    const confidenceLabel = event.severity >= 75 ? 'High' : event.severity >= 60 ? 'Medium' : 'Limited sources';
                     return (
                       <tr key={event.id} className={`border-l-2 ${severityColor}`}>
-                        <td className="py-1.5 pl-2 text-white text-xs">
+                        <td className="py-2 pl-2 text-white">
                           {event.event_type} • {event.zip}
+                          <span className="confidence-label">Confidence: {confidenceLabel}</span>
                         </td>
-                        <td className="py-1.5 text-right">
-                          <span className={`severity-score ${severityClass} text-xs`}>
+                        <td className="py-2 text-right">
+                          <span className={`severity-score ${severityClass}`}>
                             {event.severity}
                           </span>
                         </td>
@@ -187,9 +222,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* High-Value ZIPs - Compact Card */}
-          <div className="card secondary p-4 dashboard-card">
-            <h2 className="card-header text-base">High-Value ZIPs (24h)</h2>
+          {/* High-Value ZIP Codes (24h) */}
+          <div className="card secondary p-4">
+            <h2 className="card-header">High-Value ZIPs (24h)</h2>
             <div className="overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
@@ -199,46 +234,16 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2F3441]">
-                  {highValueZips.slice(0, 5).map((zip) => (
+                  {highValueZips.map((zip) => (
                     <tr key={zip} className="border-l-2 border-[#FFB020]">
-                      <td className="py-1.5 pl-2 text-white font-medium text-xs">{zip}</td>
-                      <td className="py-1.5 text-right text-xs text-[#B8BFCC]">top 10%</td>
+                      <td className="py-2 pl-2 text-white font-medium">{zip}</td>
+                      <td className="py-2 text-right text-xs text-[#B8BFCC]">top 10%</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-
-          {/* Loss Feed - Quick Link Card */}
-          <a href="/loss-feed" className="dashboard-card">
-            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
-              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Loss Feed</p>
-              <p className="text-xs text-muted">
-                Full table of ingested events and scoring
-              </p>
-            </div>
-          </a>
-
-          {/* Lead Routing - Quick Link Card */}
-          <a href="/lead-routing" className="dashboard-card">
-            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
-              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Lead Routing</p>
-              <p className="text-xs text-muted">
-                Assign and track outreach on high-priority leads
-              </p>
-            </div>
-          </a>
-
-          {/* Property Lookup - Quick Link Card */}
-          <a href="/property/10001" className="dashboard-card">
-            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
-              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Property Lookup</p>
-              <p className="text-xs text-muted">
-                Inspect property-level events and risk layers
-              </p>
-            </div>
-          </a>
         </section>
 
         {/* ZONE 3: PRIMARY CANVAS - Map and Filters */}
