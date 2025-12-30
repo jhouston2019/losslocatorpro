@@ -109,14 +109,8 @@ export default function DashboardPage() {
   } = metrics;
 
   return (
-    <div className="min-h-screen bg-[#0f172a] relative">
-      <div 
-        className="dashboard-background"
-        style={{
-          backgroundImage: 'url(/images/Firebackground.jpg)',
-        }}
-      ></div>
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
+    <div className="min-h-screen bg-[#0f172a]">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* ZONE 1: ACTION SUMMARY - Top KPI Row */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="card p-4 border-l-4 border-[#f59e0b]">
