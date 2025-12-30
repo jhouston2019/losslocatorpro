@@ -113,7 +113,7 @@ export default function DashboardPage() {
       <div 
         className="dashboard-background"
         style={{
-          backgroundImage: 'url(/images/tech-background.JPG)',
+          backgroundImage: 'url(/images/Firebackground.jpg)',
         }}
       ></div>
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
