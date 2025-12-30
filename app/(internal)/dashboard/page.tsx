@@ -152,207 +152,204 @@ export default function DashboardPage() {
           Last ingestion: 6 minutes ago · 12 sources active
         </p>
 
-        {/* ZONE 2: PRIMARY CANVAS - Map First */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Collapsible Filters */}
-            <div className="card p-4">
-              <details className="group">
-                <summary className="cursor-pointer text-sm font-medium text-white flex items-center justify-between">
-                  <span>Filters</span>
-                  <span className="text-[#8B92A3] group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <div className="space-y-1">
-                    <label className="text-[#B8BFCC] font-medium">State</label>
-                    <select
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
-                    >
-                      <option value="all">All States</option>
-                      {availableStates.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[#B8BFCC] font-medium">Property Type</label>
-                    <select
-                      value={propertyType}
-                      onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
-                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
-                    >
-                      <option value="all">All Types</option>
-                      <option value="residential">Residential</option>
-                      <option value="commercial">Commercial</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[#B8BFCC] font-medium">Has Phone Number</label>
-                    <select
-                      value={hasPhoneFilter}
-                      onChange={(e) => setHasPhoneFilter(e.target.value)}
-                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
-                    >
-                      <option value="all">All</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[#B8BFCC] font-medium">Min Income Percentile</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={minIncomePercentile}
-                      onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
-                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
-                      placeholder="0-100"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[#B8BFCC] font-medium">Min Phone Confidence</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={minPhoneConfidence}
-                      onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
-                      className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
-                      placeholder="0-100"
-                    />
-                  </div>
-
-                  <div className="space-y-1 flex items-end">
-                    <button
-                      onClick={() => {
-                        setSelectedState('all');
-                        setMinIncomePercentile(0);
-                        setPropertyType('all');
-                        setHasPhoneFilter('all');
-                        setMinPhoneConfidence(0);
-                      }}
-                      className="w-full rounded border border-[#3A4556] bg-[#3A4556] px-2 py-1.5 text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 transition-all duration-200"
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
-                </div>
-              </details>
-            </div>
-
-            {/* Map - Primary Canvas */}
-            <div className="card p-4">
-              <h2 className="card-header">Recent Loss Activity Map</h2>
-              {recentEvents.length === 0 ? (
-                <div className="map-empty-state">
-                  <p className="status-text">
-                    Monitoring 12 active data sources — no qualifying loss events in the last 24 hours.
-                  </p>
-                </div>
-              ) : (
-                <RealMap events={recentEvents} />
-              )}
+        {/* ZONE 2: HORIZONTAL DASHBOARD CARDS - Second Row */}
+        <section className="dashboard-grid">
+          {/* Top 10 Loss Events - Compact Card */}
+          <div className="card priority p-4 dashboard-card">
+            <h2 className="card-header text-base">Top 10 Loss Events by Severity</h2>
+            <div className="overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#3A4556]">
+                    <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">Event</th>
+                    <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Severity</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2F3441]">
+                  {topBySeverity.slice(0, 5).map((event) => {
+                    const severityColor = event.severity >= 75 ? 'border-[#ef4444]' : event.severity >= 50 ? 'border-[#f59e0b]' : 'border-[#38bdf8]';
+                    const severityClass = event.severity >= 75 ? 'severity-critical' : event.severity >= 50 ? 'severity-high' : 'severity-medium';
+                    return (
+                      <tr key={event.id} className={`border-l-2 ${severityColor}`}>
+                        <td className="py-1.5 pl-2 text-white text-xs">
+                          {event.event_type} • {event.zip}
+                        </td>
+                        <td className="py-1.5 text-right">
+                          <span className={`severity-score ${severityClass} text-xs`}>
+                            {event.severity}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* ZONE 3: FLOATING INTELLIGENCE PANELS */}
-          <aside className="space-y-6">
-            {/* Top 10 Loss Events - Table Format */}
-            <div className="card priority p-4">
-              <h2 className="card-header">Top 10 Loss Events by Severity</h2>
-              <div className="overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[#3A4556]">
-                      <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">Event</th>
-                      <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Severity</th>
+          {/* High-Value ZIPs - Compact Card */}
+          <div className="card secondary p-4 dashboard-card">
+            <h2 className="card-header text-base">High-Value ZIPs (24h)</h2>
+            <div className="overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#3A4556]">
+                    <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">ZIP</th>
+                    <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Income</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2F3441]">
+                  {highValueZips.slice(0, 5).map((zip) => (
+                    <tr key={zip} className="border-l-2 border-[#FFB020]">
+                      <td className="py-1.5 pl-2 text-white font-medium text-xs">{zip}</td>
+                      <td className="py-1.5 text-right text-xs text-[#B8BFCC]">top 10%</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#2F3441]">
-                    {topBySeverity.map((event) => {
-                      const severityColor = event.severity >= 75 ? 'border-[#ef4444]' : event.severity >= 50 ? 'border-[#f59e0b]' : 'border-[#38bdf8]';
-                      const severityClass = event.severity >= 75 ? 'severity-critical' : event.severity >= 50 ? 'severity-high' : 'severity-medium';
-                      // TODO: Wire actual confidence from event data when available
-                      const confidenceLabel = event.severity >= 75 ? 'High' : event.severity >= 60 ? 'Medium' : 'Limited sources';
-                      return (
-                        <tr key={event.id} className={`border-l-2 ${severityColor}`}>
-                          <td className="py-2 pl-2 text-white">
-                            {event.event_type} • {event.zip}
-                            <span className="confidence-label">Confidence: {confidenceLabel}</span>
-                          </td>
-                          <td className="py-2 text-right">
-                            <span className={`severity-score ${severityClass}`}>
-                              {event.severity}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </div>
 
-            {/* High-Value ZIPs - Table Format */}
-            <div className="card secondary p-4">
-              <h2 className="card-header">High-Value ZIPs (24h)</h2>
-              <div className="overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[#3A4556]">
-                      <th className="text-left py-2 text-xs font-semibold text-[#B8BFCC]">ZIP</th>
-                      <th className="text-right py-2 text-xs font-semibold text-[#B8BFCC]">Income</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#2F3441]">
-                    {highValueZips.map((zip) => (
-                      <tr key={zip} className="border-l-2 border-[#FFB020]">
-                        <td className="py-2 pl-2 text-white font-medium">{zip}</td>
-                        <td className="py-2 text-right text-xs text-[#B8BFCC]">top 10%</td>
-                      </tr>
+          {/* Loss Feed - Quick Link Card */}
+          <a href="/loss-feed" className="dashboard-card">
+            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
+              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Loss Feed</p>
+              <p className="text-xs text-muted">
+                Full table of ingested events and scoring
+              </p>
+            </div>
+          </a>
+
+          {/* Lead Routing - Quick Link Card */}
+          <a href="/lead-routing" className="dashboard-card">
+            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
+              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Lead Routing</p>
+              <p className="text-xs text-muted">
+                Assign and track outreach on high-priority leads
+              </p>
+            </div>
+          </a>
+
+          {/* Property Lookup - Quick Link Card */}
+          <a href="/property/10001" className="dashboard-card">
+            <div className="card secondary p-4 h-full hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200 flex flex-col justify-center">
+              <p className="text-base font-semibold text-[#e5e7eb] mb-2">Property Lookup</p>
+              <p className="text-xs text-muted">
+                Inspect property-level events and risk layers
+              </p>
+            </div>
+          </a>
+        </section>
+
+        {/* ZONE 3: PRIMARY CANVAS - Map and Filters */}
+        <section className="grid grid-cols-1 gap-6">
+          {/* Collapsible Filters */}
+          <div className="card p-4">
+            <details className="group">
+              <summary className="cursor-pointer text-sm font-medium text-white flex items-center justify-between">
+                <span>Filters</span>
+                <span className="text-[#8B92A3] group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="space-y-1">
+                  <label className="text-[#B8BFCC] font-medium">State</label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                  >
+                    <option value="all">All States</option>
+                    {availableStates.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </select>
+                </div>
 
-            {/* Quick Links - Secondary Panels */}
-            <div className="space-y-3">
-              <a href="/loss-feed">
-                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-[#e5e7eb]">Loss Feed</p>
-                  <p className="text-xs text-muted mt-1">
-                    Full table of ingested events and scoring
-                  </p>
+                <div className="space-y-1">
+                  <label className="text-[#B8BFCC] font-medium">Property Type</label>
+                  <select
+                    value={propertyType}
+                    onChange={(e) => setPropertyType(e.target.value as 'all' | 'residential' | 'commercial')}
+                    className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                  </select>
                 </div>
-              </a>
-              <a href="/lead-routing">
-                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-[#e5e7eb]">Lead Routing</p>
-                  <p className="text-xs text-muted mt-1">
-                    Assign and track outreach on high-priority leads
-                  </p>
+
+                <div className="space-y-1">
+                  <label className="text-[#B8BFCC] font-medium">Has Phone Number</label>
+                  <select
+                    value={hasPhoneFilter}
+                    onChange={(e) => setHasPhoneFilter(e.target.value)}
+                    className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                  >
+                    <option value="all">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
                 </div>
-              </a>
-              <a href="/property/10001">
-                <div className="card secondary p-3 hover:border-[#38bdf8] hover:shadow-glow-cyan transition-all duration-200">
-                  <p className="text-sm font-semibold text-[#e5e7eb]">Property Lookup</p>
-                  <p className="text-xs text-muted mt-1">
-                    Inspect property-level events and risk layers
-                  </p>
+
+                <div className="space-y-1">
+                  <label className="text-[#B8BFCC] font-medium">Min Income Percentile</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={minIncomePercentile}
+                    onChange={(e) => setMinIncomePercentile(Number(e.target.value))}
+                    className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    placeholder="0-100"
+                  />
                 </div>
-              </a>
-            </div>
-          </aside>
+
+                <div className="space-y-1">
+                  <label className="text-[#B8BFCC] font-medium">Min Phone Confidence</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={minPhoneConfidence}
+                    onChange={(e) => setMinPhoneConfidence(Number(e.target.value))}
+                    className="w-full rounded border border-[#3A4556] bg-[#1A1D29] px-2 py-1.5 text-white focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 focus:border-[#00D9FF]"
+                    placeholder="0-100"
+                  />
+                </div>
+
+                <div className="space-y-1 flex items-end">
+                  <button
+                    onClick={() => {
+                      setSelectedState('all');
+                      setMinIncomePercentile(0);
+                      setPropertyType('all');
+                      setHasPhoneFilter('all');
+                      setMinPhoneConfidence(0);
+                    }}
+                    className="w-full rounded border border-[#3A4556] bg-[#3A4556] px-2 py-1.5 text-[#B8BFCC] hover:bg-[#4A5568] hover:border-[#00D9FF] focus:outline-none focus:ring-2 focus:ring-[#00D9FF]/20 transition-all duration-200"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          {/* Map - Primary Canvas */}
+          <div className="card p-4">
+            <h2 className="card-header">Recent Loss Activity Map</h2>
+            {recentEvents.length === 0 ? (
+              <div className="map-empty-state">
+                <p className="status-text">
+                  Monitoring 12 active data sources — no qualifying loss events in the last 24 hours.
+                </p>
+              </div>
+            ) : (
+              <RealMap events={recentEvents} />
+            )}
+          </div>
         </section>
       </main>
     </div>
