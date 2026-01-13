@@ -117,7 +117,7 @@ async function fetchRSSFeeds(): Promise<NewsArticle[]> {
       const parsedFeed = await rssParser.parseURL(feed.url);
       
       // Filter articles by keywords
-      const relevantArticles = parsedFeed.items.filter(item => {
+      const relevantArticles = parsedFeed.items.filter((item: any) => {
         const text = `${item.title} ${item.contentSnippet || item.description || ''}`.toLowerCase();
         return feed.keywords.some(keyword => text.includes(keyword.toLowerCase()));
       });

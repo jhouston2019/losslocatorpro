@@ -226,7 +226,7 @@ async function escalateConfidence(eventId: string): Promise<void> {
   const { error } = await supabase
     .from('loss_events')
     .update({
-      confidence_score: CONFIDENCE_CORROBORATED
+      claim_probability: CONFIDENCE_CORROBORATED
     })
     .eq('id', eventId);
   

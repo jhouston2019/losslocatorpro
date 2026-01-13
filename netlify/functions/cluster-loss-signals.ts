@@ -363,12 +363,16 @@ async function createOrUpdateCluster(candidate: ClusterCandidate): Promise<strin
   for (const signal of candidate.signals) {
     await supabase
       .from('loss_cluster_signals')
-      .insert({
-        cluster_id: clusterId,
-        signal_id: signal.id
-      })
-      .onConflict('signal_id')
-      .ignore();
+      .upsert(
+        {
+          cluster_id: clusterId,
+          signal_id: signal.id
+        },
+        {
+          onConflict: 'signal_id',
+          ignoreDuplicates: true
+        }
+      );
   }
   
   return clusterId;
