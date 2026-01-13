@@ -5,96 +5,9 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# ============================================================================
-# SCHEDULED FUNCTIONS - LOSS SIGNAL INGESTION PIPELINE
-# ============================================================================
-# Loss Locator Pro aggregates and organizes multi-source loss signals
-# into confidence-scored loss intelligence.
-#
-# Pipeline runs daily in staggered sequence to avoid rate limits:
-# 1. Ingest signals from all sources (staggered)
-# 2. Run clustering/deduplication engine
-# 3. Existing enrichment functions (property/phone data)
-# ============================================================================
-
-# NOAA Weather Events (existing - runs at midnight)
-[[functions]]
-  name = "ingest-noaa-events"
-  schedule = "0 0 * * *"  # Daily at midnight UTC
-
-# Commercial Fire Incidents (runs every 3 hours)
-[[functions]]
-  name = "ingest-fire-commercial"
-  schedule = "0 */3 * * *"  # Every 3 hours
-
-# State/NFIRS Fire Incidents (runs once daily)
-[[functions]]
-  name = "ingest-fire-state"
-  schedule = "0 1 * * *"  # Daily at 1 AM UTC
-
-# Fire Incident Reports - Legacy (runs 1 hour after weather)
-[[functions]]
-  name = "ingest-fire-incidents"
-  schedule = "0 2 * * *"  # Daily at 2 AM UTC
-
-# CAD/911 Feeds (runs 3 hours after weather)
-[[functions]]
-  name = "ingest-cad-feeds"
-  schedule = "0 3 * * *"  # Daily at 3 AM UTC
-
-# News/RSS Feeds (runs 4 hours after weather)
-[[functions]]
-  name = "ingest-news-feeds"
-  schedule = "0 4 * * *"  # Daily at 4 AM UTC
-
-# Loss Signal Clustering Engine (runs 5 hours after weather, after all ingestion)
-[[functions]]
-  name = "cluster-loss-signals"
-  schedule = "0 5 * * *"  # Daily at 5 AM UTC
-
-# Property Enrichment (existing - runs after clustering)
-[[functions]]
-  name = "enrich-properties"
-  schedule = "0 5 * * *"  # Daily at 5 AM UTC
-
-# Phone Enrichment (existing - runs after property enrichment)
-[[functions]]
-  name = "enrich-phones"
-  schedule = "0 6 * * *"  # Daily at 6 AM UTC
-
-# ============================================================================
-# FUNCTION CONFIGURATION
-# ============================================================================
-
 [functions]
-  # Increase timeout for ingestion functions
-  timeout = 300  # 5 minutes
-
-# Environment variables (set in Netlify dashboard)
-# Required for ingestion:
-# - SUPABASE_URL
-# - SUPABASE_SERVICE_ROLE_KEY
-# - CRON_SECRET (for authentication)
-#
-# Fire Incident APIs (NEW - REQUIRED):
-# - FIRE_COMMERCIAL_API_URL
-# - FIRE_COMMERCIAL_API_KEY
-# - FIRE_STATE_API_URL
-# - FIRE_STATE_API_KEY
-#
-# Optional API keys (configure as needed):
-# - FIRE_INCIDENT_API_URL (legacy)
-# - FIRE_INCIDENT_API_KEY (legacy)
-# - PULSEPOINT_API_URL
-# - PULSEPOINT_API_KEY
-# - ACTIVE911_API_URL
-# - ACTIVE911_API_KEY
-# - MUNICIPAL_CAD_API_URL
-# - MUNICIPAL_CAD_API_KEY
-# - NEWS_RSS_FEED_1
-# - NEWS_RSS_FEED_2
-# - GEOCODING_API_URL
-# - GEOCODING_API_KEY
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/*"
