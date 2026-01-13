@@ -44,3 +44,9 @@ SELECT
 FROM loss_events
 WHERE source = 'NOAA';
 
+
+
+
+
+
+

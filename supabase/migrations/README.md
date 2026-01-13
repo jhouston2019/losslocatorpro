@@ -147,3 +147,9 @@ For issues or questions about this migration, refer to:
 - Type definitions: `lib/database.types.ts`
 - Data access layer: `lib/data.ts`
 
+
+
+
+
+
+

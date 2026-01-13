@@ -293,3 +293,9 @@ type LossEventUpdate = Database['public']['Tables']['loss_events']['Update'];
 **Ready for Netlify**: ✅ Yes
 
 
+
+
+
+
+
+

@@ -155,3 +155,9 @@ LIMIT 10;
 3. Set up cron-job.org for automatic scheduling
 4. Monitor function logs in Netlify dashboard
 
+
+
+
+
+
+

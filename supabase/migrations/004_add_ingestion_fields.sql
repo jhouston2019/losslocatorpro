@@ -52,3 +52,9 @@ WHERE latitude IS NOT NULL AND longitude IS NOT NULL;
 -- WHERE tablename = 'loss_events' 
 -- AND indexname = 'idx_unique_source_event';
 
+
+
+
+
+
+

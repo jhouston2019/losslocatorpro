@@ -383,3 +383,9 @@ const handler: Handler = async (event, context) => {
 // Export as scheduled function (runs hourly)
 export { handler };
 
+
+
+
+
+
+

@@ -13,3 +13,7 @@ The dashboard is configured to display it with:
 
 This creates a subtle tech-themed backdrop for the loss intelligence command console.
 
+
+
+
+

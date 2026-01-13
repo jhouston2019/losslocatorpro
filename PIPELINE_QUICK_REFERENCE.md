@@ -159,3 +159,9 @@ ORDER BY date DESC;
 
 **That's it!** Your Loss Locator Pro is now fully automated.
 
+
+
+
+
+
+

@@ -16,3 +16,60 @@ next-env.d.ts
 # Build outputs
 dist
 build
+
+# Windows System Files
+NTUSER.DAT*
+ntuser.dat*
+ntuser.ini
+*.LOG1
+*.LOG2
+
+# Windows User Directories (DO NOT COMMIT)
+AppData/
+Application Data/
+Contacts/
+Cookies/
+Desktop/
+Documents/
+Downloads/
+Favorites/
+Links/
+Local Settings/
+Music/
+My Documents/
+NetHood/
+OneDrive/
+Pictures/
+PrintHood/
+Recent/
+Saved Games/
+Searches/
+SendTo/
+Start Menu/
+Templates/
+Videos/
+
+# Android SDK (should not be in project)
+.android/
+
+# Other system/config files
+.config/
+.cursor/
+.emulator_console_auth_token
+.eslintrc.js
+.gitconfig
+.lesshst
+.prettierrc
+.viminfo
+__pycache__/
+_build/
+_cursor/
+
+# Backup files
+*.backup-*
+*.backup
+
+# Temporary files
+temp_source/
+testing/
+tests/

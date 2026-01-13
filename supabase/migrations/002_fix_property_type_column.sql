@@ -24,3 +24,9 @@ RENAME COLUMN property_type_new TO property_type;
 -- WHERE table_name = 'loss_events' 
 -- AND column_name IN ('property_type', 'is_commercial');
 
+
+
+
+
+
+

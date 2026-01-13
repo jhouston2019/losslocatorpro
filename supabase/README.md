@@ -85,3 +85,9 @@ TRUNCATE loss_events, properties, property_events, routing_queue CASCADE;
 
 
 
+
+
+
+
+
+

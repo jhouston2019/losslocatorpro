@@ -353,6 +353,204 @@ export type Database = {
         }
         Relationships: []
       }
+      loss_signals: {
+        Row: {
+          id: string
+          source_type: string
+          source_name: string
+          external_id: string | null
+          event_type: string
+          occurred_at: string
+          reported_at: string
+          lat: number | null
+          lng: number | null
+          geometry: Json | null
+          address_text: string | null
+          city: string | null
+          state_code: string | null
+          zip: string | null
+          severity_raw: number | null
+          confidence_raw: number | null
+          raw_data: Json | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          source_type: string
+          source_name: string
+          external_id?: string | null
+          event_type: string
+          occurred_at: string
+          reported_at: string
+          lat?: number | null
+          lng?: number | null
+          geometry?: Json | null
+          address_text?: string | null
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          severity_raw?: number | null
+          confidence_raw?: number | null
+          raw_data?: Json | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          source_type?: string
+          source_name?: string
+          external_id?: string | null
+          event_type?: string
+          occurred_at?: string
+          reported_at?: string
+          lat?: number | null
+          lng?: number | null
+          geometry?: Json | null
+          address_text?: string | null
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          severity_raw?: number | null
+          confidence_raw?: number | null
+          raw_data?: Json | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      loss_clusters: {
+        Row: {
+          id: string
+          event_type: string
+          center_lat: number
+          center_lng: number
+          geometry: Json | null
+          address_text: string | null
+          city: string | null
+          state_code: string | null
+          zip: string | null
+          time_window_start: string
+          time_window_end: string
+          confidence_score: number
+          verification_status: string
+          signal_count: number
+          source_types: string[] | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_type: string
+          center_lat: number
+          center_lng: number
+          geometry?: Json | null
+          address_text?: string | null
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          time_window_start: string
+          time_window_end: string
+          confidence_score: number
+          verification_status: string
+          signal_count?: number
+          source_types?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_type?: string
+          center_lat?: number
+          center_lng?: number
+          geometry?: Json | null
+          address_text?: string | null
+          city?: string | null
+          state_code?: string | null
+          zip?: string | null
+          time_window_start?: string
+          time_window_end?: string
+          confidence_score?: number
+          verification_status?: string
+          signal_count?: number
+          source_types?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      loss_cluster_signals: {
+        Row: {
+          id: string
+          cluster_id: string
+          signal_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          cluster_id: string
+          signal_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          cluster_id?: string
+          signal_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loss_cluster_signals_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "loss_clusters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loss_cluster_signals_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "loss_signals"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      loss_signal_ingestion_log: {
+        Row: {
+          id: string
+          source_type: string
+          source_name: string
+          started_at: string
+          completed_at: string | null
+          status: string
+          signals_ingested: number | null
+          signals_skipped: number | null
+          error_message: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          source_type: string
+          source_name: string
+          started_at: string
+          completed_at?: string | null
+          status: string
+          signals_ingested?: number | null
+          signals_skipped?: number | null
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          source_type?: string
+          source_name?: string
+          started_at?: string
+          completed_at?: string | null
+          status?: string
+          signals_ingested?: number | null
+          signals_skipped?: number | null
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -521,6 +719,10 @@ export type RoutingQueueEntry = Database['public']['Tables']['routing_queue']['R
 export type AdminSettings = Database['public']['Tables']['admin_settings']['Row']
 export type LossProperty = Database['public']['Tables']['loss_properties']['Row']
 export type ZipDemographic = Database['public']['Tables']['zip_demographics']['Row']
+export type LossSignal = Database['public']['Tables']['loss_signals']['Row']
+export type LossCluster = Database['public']['Tables']['loss_clusters']['Row']
+export type LossClusterSignal = Database['public']['Tables']['loss_cluster_signals']['Row']
+export type LossSignalIngestionLog = Database['public']['Tables']['loss_signal_ingestion_log']['Row']
 export type TimelineEntry = {
   date: string
   type: string

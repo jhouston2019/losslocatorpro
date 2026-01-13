@@ -397,3 +397,9 @@ Once all migrations are applied and verified, your database is ready for the enr
 
 **Next:** Deploy your frontend with `npm run build && netlify deploy --prod`
 
+
+
+
+
+
+

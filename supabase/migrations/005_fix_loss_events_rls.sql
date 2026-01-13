@@ -52,3 +52,9 @@ USING (
 
 -- Should show 2 policies (read + manage)
 
+
+
+
+
+
+
