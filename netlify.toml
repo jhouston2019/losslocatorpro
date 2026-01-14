@@ -9,6 +9,11 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# Scheduled Functions
+[[functions]]
+  name = "ingest-nws-alerts"
+  schedule = "0 * * * *"  # Every hour
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
