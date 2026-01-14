@@ -14,6 +14,10 @@
   name = "ingest-nws-alerts"
   schedule = "0 * * * *"  # Every hour
 
+[[functions]]
+  name = "ingest-fema-disasters"
+  schedule = "0 0 * * 0"  # Weekly on Sunday at midnight UTC
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
