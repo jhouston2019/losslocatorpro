@@ -847,7 +847,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      loss_opportunities_by_zip: {
+        Row: {
+          zip_code: string
+          state_code: string
+          county_fips: string | null
+          event_type: string
+          event_count: number
+          avg_severity: number
+          avg_claim_probability: number
+          max_severity: number
+          max_claim_probability: number
+          latest_event: string
+          earliest_event: string
+          confidence_levels: string
+          sources: string
+        }
+      }
+      loss_opportunities_by_county: {
+        Row: {
+          county_fips: string
+          state_code: string
+          event_type: string
+          event_count: number
+          zip_count: number
+          avg_severity: number
+          avg_claim_probability: number
+          max_severity: number
+          max_claim_probability: number
+          latest_event: string
+          earliest_event: string
+          confidence_levels: string
+          sources: string
+        }
+      }
+      zip_clusters_ready_for_resolution: {
+        Row: {
+          zip_code: string
+          state_code: string
+          county_fips: string | null
+          event_type: string
+          event_count: number
+          avg_claim_probability: number
+          max_claim_probability: number
+          latest_event: string
+          properties_resolved: number
+          meets_threshold: boolean
+        }
+      }
     }
     Functions: {
       [_ in never]: never
