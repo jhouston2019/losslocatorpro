@@ -1,374 +1,329 @@
-import { Handler } from '@netlify/functions';
+/**
+ * NETLIFY FUNCTION: GEO ENRICHMENT & RESOLUTION
+ * 
+ * Resolves loss events to ZIP codes and counties
+ * Creates aggregated opportunity clusters at ZIP/county level
+ * 
+ * Trigger: Scheduled (daily) or manual invocation
+ * 
+ * WHAT IT DOES:
+ * 1. Finds loss_events without geo resolution
+ * 2. Resolves to county FIPS and ZIP codes
+ * 3. Populates loss_geo_aggregates table
+ * 4. Updates loss_events with resolution metadata
+ */
+
+import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../lib/database.types';
 
-// ============================================================================
-// GEO RESOLUTION ENRICHMENT
-// ============================================================================
-// Resolves loss events to ZIP codes and counties
-// Creates geographic opportunity clusters
-// Runs daily after ingestion functions
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-interface LossEvent {
-  id: string;
-  state_code: string | null;
-  county_fips: string | null;
-  zip: string;
-  zip_codes: string[] | null;
-  latitude: number | null;
-  longitude: number | null;
-  event_type: string;
-  severity: number;
-  claim_probability: number | null;
-  event_timestamp: string;
-  confidence_level: string | null;
-  source: string | null;
-  geo_resolution_level: string | null;
+interface GeoResolutionResult {
+  eventId: string;
+  countyFips: string | null;
+  zipCodes: string[];
+  resolutionLevel: 'state' | 'county' | 'zip' | 'point';
+  aggregatesCreated: number;
 }
 
-interface ZIPCountyCrosswalk {
-  zip_code: string;
-  county_fips: string;
-  state_code: string;
-  county_name: string | null;
-  residential_ratio: number;
+interface EnrichmentStats {
+  eventsProcessed: number;
+  eventsEnriched: number;
+  aggregatesCreated: number;
+  errors: string[];
 }
 
 // ============================================================================
-// CONFIGURATION
+// ZIP-COUNTY CROSSWALK LOOKUP
 // ============================================================================
 
-// Batch size for processing events
-const BATCH_SIZE = 100;
+/**
+ * Get all ZIP codes for a given county FIPS
+ */
+async function getZipsForCounty(countyFips: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('zip_county_crosswalk')
+    .select('zip_code')
+    .eq('county_fips', countyFips);
+  
+  if (error) {
+    console.error('Error fetching ZIPs for county:', error);
+    return [];
+  }
+  
+  return data?.map(row => row.zip_code) || [];
+}
+
+/**
+ * Get county FIPS for a given ZIP code
+ */
+async function getCountyForZip(zipCode: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('zip_county_crosswalk')
+    .select('county_fips')
+    .eq('zip_code', zipCode)
+    .limit(1)
+    .single();
+  
+  if (error || !data) {
+    return null;
+  }
+  
+  return data.county_fips;
+}
 
 // ============================================================================
 // GEO RESOLUTION LOGIC
 // ============================================================================
 
 /**
- * Resolve coordinates to ZIP code using Census Geocoding API
+ * Resolve a loss event to county and ZIP codes
  */
-async function reverseGeocodeToZip(lat: number, lng: number): Promise<{ zip: string; county_fips: string; state: string } | null> {
-  try {
-    const url = `https://geocoding.geo.census.gov/geocoder/geographies/coordinates?x=${lng}&y=${lat}&benchmark=Public_AR_Current&vintage=Current_Current&format=json`;
-    
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    
-    const data = await response.json();
-    
-    // Get ZIP code
-    const zipResult = data?.result?.geographies?.['ZIP Code Tabulation Areas']?.[0];
-    const zip = zipResult?.ZCTA5 || zipResult?.GEOID;
-    
-    // Get county FIPS
-    const countyResult = data?.result?.geographies?.['Counties']?.[0];
-    const stateFips = countyResult?.STATE || '';
-    const countyFips = countyResult?.COUNTY || '';
-    const fullCountyFips = stateFips && countyFips ? `${stateFips}${countyFips}` : '';
-    
-    // Get state code
-    const stateResult = data?.result?.geographies?.States?.[0];
-    const stateCode = stateResult?.STUSAB || '';
-    
-    if (!zip) return null;
-    
-    return {
-      zip,
-      county_fips: fullCountyFips,
-      state: stateCode,
-    };
-  } catch (error) {
-    console.error('Reverse geocoding error:', error);
-    return null;
-  }
-}
-
-/**
- * Get all ZIPs in a county from crosswalk table
- */
-async function getZIPsForCounty(supabase: any, countyFips: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('zip_county_crosswalk')
-    .select('zip_code')
-    .eq('county_fips', countyFips);
-  
-  if (error || !data) {
-    console.error('Error fetching ZIPs for county:', error);
-    return [];
-  }
-  
-  return data.map((row: any) => row.zip_code);
-}
-
-/**
- * Get county FIPS for a ZIP code from crosswalk table
- */
-async function getCountyForZIP(supabase: any, zipCode: string): Promise<{ county_fips: string; state_code: string } | null> {
-  const { data, error } = await supabase
-    .from('zip_county_crosswalk')
-    .select('county_fips, state_code')
-    .eq('zip_code', zipCode)
-    .limit(1)
-    .maybeSingle();
-  
-  if (error || !data) {
-    return null;
-  }
-  
-  return {
-    county_fips: data.county_fips,
-    state_code: data.state_code,
-  };
-}
-
-/**
- * Determine confidence level based on source
- */
-function determineConfidenceLevel(source: string | null): 'forecast' | 'active' | 'declared' | 'confirmed' {
-  if (!source) return 'active';
-  
-  const sourceLower = source.toLowerCase();
-  
-  // NWS alerts are forecasts/warnings
-  if (sourceLower === 'nws') return 'forecast';
-  
-  // FEMA disasters are declared
-  if (sourceLower === 'fema') return 'declared';
-  
-  // NOAA storm reports are confirmed
-  if (sourceLower === 'noaa') return 'confirmed';
-  
-  // Fire reports are active
-  if (sourceLower.includes('fire')) return 'active';
-  
-  return 'active';
-}
-
-/**
- * Determine geo resolution level
- */
-function determineGeoResolutionLevel(
-  hasCoordinates: boolean,
-  hasZIP: boolean,
-  hasCounty: boolean
-): 'state' | 'county' | 'zip' | 'point' {
-  if (hasCoordinates) return 'point';
-  if (hasZIP) return 'zip';
-  if (hasCounty) return 'county';
-  return 'state';
-}
-
-/**
- * Enrich a single event with geo resolution
- */
-async function enrichEvent(supabase: any, event: LossEvent): Promise<{
-  county_fips: string | null;
-  zip_codes: string[];
-  geo_resolution_level: 'state' | 'county' | 'zip' | 'point';
-  confidence_level: 'forecast' | 'active' | 'declared' | 'confirmed';
-}> {
-  let countyFips = event.county_fips;
+async function resolveEventGeography(event: any): Promise<GeoResolutionResult> {
+  let countyFips: string | null = null;
   let zipCodes: string[] = [];
+  let resolutionLevel: 'state' | 'county' | 'zip' | 'point' = 'state';
   
-  // If event already has zip_codes array, use it
-  if (event.zip_codes && event.zip_codes.length > 0) {
+  // STRATEGY 1: Event already has county_fips
+  if (event.county_fips) {
+    countyFips = event.county_fips;
+    zipCodes = await getZipsForCounty(countyFips);
+    resolutionLevel = zipCodes.length > 0 ? 'county' : 'state';
+  }
+  // STRATEGY 2: Event has ZIP code(s)
+  else if (event.zip_codes && event.zip_codes.length > 0) {
     zipCodes = event.zip_codes;
+    // Try to get county from first ZIP
+    countyFips = await getCountyForZip(zipCodes[0]);
+    resolutionLevel = 'zip';
   }
-  // If event has coordinates, reverse geocode
-  else if (event.latitude && event.longitude) {
-    const geoResult = await reverseGeocodeToZip(event.latitude, event.longitude);
-    if (geoResult) {
-      zipCodes = [geoResult.zip];
-      if (!countyFips) countyFips = geoResult.county_fips;
-    }
-  }
-  // If event has single ZIP, use it
+  // STRATEGY 3: Event has single ZIP field
   else if (event.zip && event.zip !== '00000') {
     zipCodes = [event.zip];
-    
-    // Try to get county from crosswalk
-    if (!countyFips) {
-      const countyResult = await getCountyForZIP(supabase, event.zip);
-      if (countyResult) {
-        countyFips = countyResult.county_fips;
-      }
-    }
+    countyFips = await getCountyForZip(event.zip);
+    resolutionLevel = 'zip';
   }
-  // If event has county but no ZIP, get all ZIPs in county
-  else if (countyFips) {
-    const countyZIPs = await getZIPsForCounty(supabase, countyFips);
-    if (countyZIPs.length > 0) {
-      zipCodes = countyZIPs;
-    }
+  // STRATEGY 4: Event has lat/lng - could do reverse geocoding here
+  else if (event.latitude && event.longitude) {
+    // For now, just mark as point-level without resolution
+    // Future: Add reverse geocoding service
+    resolutionLevel = 'point';
   }
   
-  // Determine resolution level
-  const geoResolutionLevel = determineGeoResolutionLevel(
-    !!(event.latitude && event.longitude),
-    zipCodes.length > 0,
-    !!countyFips
-  );
-  
-  // Determine confidence level
-  const confidenceLevel = determineConfidenceLevel(event.source);
+  // Create aggregates for each ZIP
+  let aggregatesCreated = 0;
+  if (zipCodes.length > 0) {
+    aggregatesCreated = await createGeoAggregates(event, countyFips, zipCodes);
+  }
   
   return {
-    county_fips: countyFips,
-    zip_codes: zipCodes,
-    geo_resolution_level: geoResolutionLevel,
-    confidence_level: confidenceLevel,
+    eventId: event.id,
+    countyFips,
+    zipCodes,
+    resolutionLevel,
+    aggregatesCreated
   };
 }
 
+// ============================================================================
+// AGGREGATE CREATION
+// ============================================================================
+
 /**
- * Populate geo aggregates for an event
+ * Create loss_geo_aggregates entries for an event
  */
-async function populateGeoAggregates(supabase: any, eventId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('populate_geo_aggregates_for_event', {
-    event_uuid: eventId,
-  });
+async function createGeoAggregates(
+  event: any,
+  countyFips: string | null,
+  zipCodes: string[]
+): Promise<number> {
+  const aggregates = zipCodes.map(zipCode => ({
+    event_id: event.id,
+    state_code: event.state_code,
+    county_fips: countyFips,
+    zip_code: zipCode,
+    event_type: event.event_type,
+    severity_score: event.severity / 100, // Convert to 0-1 scale
+    claim_probability: event.claim_probability || 0.5,
+    event_timestamp: event.event_timestamp,
+    confidence_level: event.confidence_level || 'active',
+    source: event.source
+  }));
+  
+  const { data, error } = await supabase
+    .from('loss_geo_aggregates')
+    .upsert(aggregates, {
+      onConflict: 'event_id,zip_code',
+      ignoreDuplicates: false
+    });
   
   if (error) {
-    console.error(`Error populating aggregates for ${eventId}:`, error);
+    console.error('Error creating geo aggregates:', error);
     return 0;
   }
   
-  return data || 0;
+  return aggregates.length;
 }
 
 // ============================================================================
-// MAIN ENRICHMENT LOGIC
+// CLAIM PROBABILITY ADJUSTMENT
 // ============================================================================
 
-const handler: Handler = async (event, context) => {
-  console.log('🗺️ Starting geo resolution enrichment...');
+/**
+ * Calculate ZIP-level claim probability
+ * Adjusts base event severity by event type and property distribution
+ */
+function calculateZipClaimProbability(
+  eventSeverity: number,
+  eventType: string,
+  propertyType?: string
+): number {
+  let baseProbability = eventSeverity / 100;
   
-  const startTime = Date.now();
-  let enrichedCount = 0;
-  let aggregatesCreated = 0;
-  let errorCount = 0;
+  // Event type multipliers
+  const eventMultipliers: Record<string, number> = {
+    'Hail': 1.2,      // High claim rate
+    'Wind': 1.1,      // Moderate-high claim rate
+    'Fire': 1.3,      // Very high claim rate
+    'Freeze': 0.9     // Lower claim rate
+  };
   
-  try {
-    // Initialize Supabase client with service role key
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase configuration');
-    }
-    
-    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-    
-    // Fetch events that need geo enrichment
-    // Priority: events without zip_codes or county_fips
-    const { data: events, error: fetchError } = await supabase
-      .from('loss_events')
-      .select('*')
-      .or('zip_codes.is.null,county_fips.is.null,geo_resolution_level.is.null')
-      .order('created_at', { ascending: false })
-      .limit(BATCH_SIZE);
-    
-    if (fetchError) {
-      throw new Error(`Error fetching events: ${fetchError.message}`);
-    }
-    
-    if (!events || events.length === 0) {
-      console.log('✅ No events need geo enrichment');
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          success: true,
-          message: 'No events need enrichment',
-          enriched: 0,
-          aggregates_created: 0,
-          errors: 0,
-          duration: Date.now() - startTime,
-        }),
-      };
-    }
-    
-    console.log(`📊 Found ${events.length} events to enrich`);
-    
-    // Process each event
-    for (const evt of events) {
-      try {
-        // Enrich event with geo resolution
-        const enrichment = await enrichEvent(supabase, evt as any);
-        
-        // Update event with enrichment data
+  const multiplier = eventMultipliers[eventType] || 1.0;
+  baseProbability *= multiplier;
+  
+  // Property type adjustment
+  if (propertyType === 'commercial') {
+    baseProbability *= 1.15; // Commercial properties more likely to file
+  }
+  
+  // Cap at 0.95 (never 100% certain)
+  return Math.min(baseProbability, 0.95);
+}
+
+// ============================================================================
+// MAIN ENRICHMENT PROCESS
+// ============================================================================
+
+/**
+ * Process events that need geo enrichment
+ */
+async function enrichEvents(limit: number = 100): Promise<EnrichmentStats> {
+  const stats: EnrichmentStats = {
+    eventsProcessed: 0,
+    eventsEnriched: 0,
+    aggregatesCreated: 0,
+    errors: []
+  };
+  
+  // Find events without geo resolution
+  const { data: events, error: fetchError } = await supabase
+    .from('loss_events')
+    .select('*')
+    .or('geo_resolution_level.is.null,geo_resolution_level.eq.state')
+    .limit(limit);
+  
+  if (fetchError) {
+    stats.errors.push(`Failed to fetch events: ${fetchError.message}`);
+    return stats;
+  }
+  
+  if (!events || events.length === 0) {
+    console.log('No events need geo enrichment');
+    return stats;
+  }
+  
+  console.log(`Processing ${events.length} events for geo enrichment`);
+  
+  // Process each event
+  for (const event of events) {
+    try {
+      stats.eventsProcessed++;
+      
+      const result = await resolveEventGeography(event);
+      
+      // Update event with resolution metadata
+      if (result.zipCodes.length > 0 || result.countyFips) {
         const { error: updateError } = await supabase
           .from('loss_events')
           .update({
-            county_fips: enrichment.county_fips,
-            zip_codes: enrichment.zip_codes,
-            geo_resolution_level: enrichment.geo_resolution_level,
-            confidence_level: enrichment.confidence_level,
+            county_fips: result.countyFips,
+            zip_codes: result.zipCodes.length > 0 ? result.zipCodes : null,
+            geo_resolution_level: result.resolutionLevel,
+            updated_at: new Date().toISOString()
           })
-          .eq('id', evt.id);
+          .eq('id', event.id);
         
         if (updateError) {
-          console.error(`❌ Error updating event ${evt.id}:`, updateError);
-          errorCount++;
-          continue;
+          stats.errors.push(`Failed to update event ${event.id}: ${updateError.message}`);
+        } else {
+          stats.eventsEnriched++;
+          stats.aggregatesCreated += result.aggregatesCreated;
         }
-        
-        enrichedCount++;
-        
-        // Populate geo aggregates
-        const aggregateCount = await populateGeoAggregates(supabase, evt.id);
-        aggregatesCreated += aggregateCount;
-        
-        console.log(`✅ Enriched ${evt.source || 'unknown'} event: ${enrichment.zip_codes.length} ZIPs, ${enrichment.geo_resolution_level} resolution`);
-        
-      } catch (eventError) {
-        console.error(`Error processing event ${evt.id}:`, eventError);
-        errorCount++;
       }
+    } catch (err) {
+      const error = err as Error;
+      stats.errors.push(`Error processing event ${event.id}: ${error.message}`);
     }
+  }
+  
+  return stats;
+}
+
+// ============================================================================
+// NETLIFY HANDLER
+// ============================================================================
+
+export const handler: Handler = async (
+  event: HandlerEvent,
+  context: HandlerContext
+) => {
+  console.log('Starting geo enrichment process');
+  
+  try {
+    // Parse query parameters
+    const limit = parseInt(event.queryStringParameters?.limit || '100');
     
-    const duration = Date.now() - startTime;
-    const summary = {
-      success: true,
-      events_processed: events.length,
-      enriched: enrichedCount,
-      aggregates_created: aggregatesCreated,
-      errors: errorCount,
-      duration_ms: duration,
-    };
+    // Run enrichment
+    const stats = await enrichEvents(limit);
     
-    console.log('🎉 Geo resolution enrichment complete:', summary);
+    console.log('Geo enrichment complete:', stats);
     
     return {
       statusCode: 200,
-      body: JSON.stringify(summary),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        success: true,
+        stats,
+        timestamp: new Date().toISOString()
+      })
     };
-    
   } catch (error) {
-    console.error('❌ Fatal error during enrichment:', error);
+    console.error('Geo enrichment failed:', error);
     
     return {
       statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        enriched: enrichedCount,
-        aggregates_created: aggregatesCreated,
-        errors: errorCount,
-        duration: Date.now() - startTime,
-      }),
+        timestamp: new Date().toISOString()
+      })
     };
   }
 };
-
-// Export as scheduled function (runs daily after ingestion)
-export { handler };

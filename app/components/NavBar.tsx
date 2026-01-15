@@ -9,6 +9,7 @@ import type { AuthUser } from '@/lib/auth';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/loss-feed', label: 'Loss Feed' },
+  { href: '/geo-opportunities', label: 'Geo Opportunities' },
   { href: '/lead-routing', label: 'Lead Routing' },
   { href: '/property/10001', label: 'Property Lookup' },
   { href: '/admin', label: 'Admin' },

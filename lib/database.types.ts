@@ -143,6 +143,10 @@ export type Database = {
           source_event_id: string | null
           latitude: number | null
           longitude: number | null
+          county_fips: string | null
+          zip_codes: string[] | null
+          geo_resolution_level: string | null
+          confidence_level: string | null
         }
         Insert: {
           claim_probability?: number | null
@@ -164,6 +168,10 @@ export type Database = {
           source_event_id?: string | null
           latitude?: number | null
           longitude?: number | null
+          county_fips?: string | null
+          zip_codes?: string[] | null
+          geo_resolution_level?: string | null
+          confidence_level?: string | null
         }
         Update: {
           claim_probability?: number | null
@@ -185,6 +193,10 @@ export type Database = {
           source_event_id?: string | null
           latitude?: number | null
           longitude?: number | null
+          county_fips?: string | null
+          zip_codes?: string[] | null
+          geo_resolution_level?: string | null
+          confidence_level?: string | null
         }
         Relationships: []
       }
@@ -551,6 +563,267 @@ export type Database = {
         }
         Relationships: []
       }
+      loss_geo_aggregates: {
+        Row: {
+          id: string
+          event_id: string
+          state_code: string
+          county_fips: string | null
+          zip_code: string
+          event_type: string
+          severity_score: number
+          claim_probability: number
+          event_timestamp: string
+          confidence_level: string
+          source: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          state_code: string
+          county_fips?: string | null
+          zip_code: string
+          event_type: string
+          severity_score: number
+          claim_probability: number
+          event_timestamp: string
+          confidence_level: string
+          source?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          state_code?: string
+          county_fips?: string | null
+          zip_code?: string
+          event_type?: string
+          severity_score?: number
+          claim_probability?: number
+          event_timestamp?: string
+          confidence_level?: string
+          source?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loss_geo_aggregates_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "loss_events"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      loss_property_candidates: {
+        Row: {
+          id: string
+          zip_code: string
+          county_fips: string | null
+          state_code: string | null
+          address: string
+          city: string | null
+          property_type: string | null
+          resolution_source: string
+          resolution_trigger: string | null
+          event_id: string | null
+          event_type: string | null
+          estimated_claim_probability: number | null
+          zip_level_probability: number | null
+          property_score_adjustment: number | null
+          status: string
+          resolved_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          zip_code: string
+          county_fips?: string | null
+          state_code?: string | null
+          address: string
+          city?: string | null
+          property_type?: string | null
+          resolution_source: string
+          resolution_trigger?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          estimated_claim_probability?: number | null
+          zip_level_probability?: number | null
+          property_score_adjustment?: number | null
+          status?: string
+          resolved_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          zip_code?: string
+          county_fips?: string | null
+          state_code?: string | null
+          address?: string
+          city?: string | null
+          property_type?: string | null
+          resolution_source?: string
+          resolution_trigger?: string | null
+          event_id?: string | null
+          event_type?: string | null
+          estimated_claim_probability?: number | null
+          zip_level_probability?: number | null
+          property_score_adjustment?: number | null
+          status?: string
+          resolved_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loss_property_candidates_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "loss_events"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      zip_county_crosswalk: {
+        Row: {
+          id: string
+          zip_code: string
+          county_fips: string
+          state_code: string
+          county_name: string | null
+          residential_ratio: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          zip_code: string
+          county_fips: string
+          state_code: string
+          county_name?: string | null
+          residential_ratio?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          zip_code?: string
+          county_fips?: string
+          state_code?: string
+          county_name?: string | null
+          residential_ratio?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      address_resolution_log: {
+        Row: {
+          id: string
+          zip_code: string
+          event_id: string | null
+          trigger_type: string
+          triggered_by: string | null
+          resolution_source: string
+          properties_found: number | null
+          properties_inserted: number | null
+          started_at: string | null
+          completed_at: string | null
+          status: string
+          error_message: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          zip_code: string
+          event_id?: string | null
+          trigger_type: string
+          triggered_by?: string | null
+          resolution_source: string
+          properties_found?: number | null
+          properties_inserted?: number | null
+          started_at?: string | null
+          completed_at?: string | null
+          status?: string
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          zip_code?: string
+          event_id?: string | null
+          trigger_type?: string
+          triggered_by?: string | null
+          resolution_source?: string
+          properties_found?: number | null
+          properties_inserted?: number | null
+          started_at?: string | null
+          completed_at?: string | null
+          status?: string
+          error_message?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "address_resolution_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "loss_events"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      address_resolution_settings: {
+        Row: {
+          id: string
+          auto_resolve_threshold: number | null
+          min_event_count: number | null
+          max_properties_per_zip: number | null
+          source_priority: Json | null
+          enable_auto_resolution: boolean | null
+          enable_user_triggered: boolean | null
+          enable_downstream_triggered: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          auto_resolve_threshold?: number | null
+          min_event_count?: number | null
+          max_properties_per_zip?: number | null
+          source_priority?: Json | null
+          enable_auto_resolution?: boolean | null
+          enable_user_triggered?: boolean | null
+          enable_downstream_triggered?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          auto_resolve_threshold?: number | null
+          min_event_count?: number | null
+          max_properties_per_zip?: number | null
+          source_priority?: Json | null
+          enable_auto_resolution?: boolean | null
+          enable_user_triggered?: boolean | null
+          enable_downstream_triggered?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -723,6 +996,11 @@ export type LossSignal = Database['public']['Tables']['loss_signals']['Row']
 export type LossCluster = Database['public']['Tables']['loss_clusters']['Row']
 export type LossClusterSignal = Database['public']['Tables']['loss_cluster_signals']['Row']
 export type LossSignalIngestionLog = Database['public']['Tables']['loss_signal_ingestion_log']['Row']
+export type LossGeoAggregate = Database['public']['Tables']['loss_geo_aggregates']['Row']
+export type LossPropertyCandidate = Database['public']['Tables']['loss_property_candidates']['Row']
+export type ZipCountyCrosswalk = Database['public']['Tables']['zip_county_crosswalk']['Row']
+export type AddressResolutionLog = Database['public']['Tables']['address_resolution_log']['Row']
+export type AddressResolutionSettings = Database['public']['Tables']['address_resolution_settings']['Row']
 export type TimelineEntry = {
   date: string
   type: string

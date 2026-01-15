@@ -1,227 +1,212 @@
-import { Handler } from '@netlify/functions';
+/**
+ * NETLIFY FUNCTION: STAGED ADDRESS RESOLUTION
+ * 
+ * Event-triggered, on-demand address resolution
+ * NO bulk imports - addresses resolved only when needed
+ * 
+ * Trigger: User action, threshold, or downstream request
+ * 
+ * WHAT IT DOES:
+ * 1. Receives ZIP code + event context
+ * 2. Checks if resolution should proceed (thresholds, limits)
+ * 3. Resolves addresses using pluggable sources
+ * 4. Scores properties with adjusted claim probability
+ * 5. Inserts into loss_property_candidates
+ * 6. Logs resolution attempt
+ * 
+ * COMPLIANCE:
+ * - No claim of verified damage
+ * - No auto-contact
+ * - No scraping without explicit trigger
+ * - Source tracking for audit
+ */
+
+import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../lib/database.types';
 
-// ============================================================================
-// STAGED ADDRESS RESOLUTION
-// ============================================================================
-// Event-triggered, on-demand address resolution
-// NO bulk imports - addresses resolved only when needed
-// Pluggable architecture for multiple data sources
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
+interface AddressResolutionRequest {
+  zipCode: string;
+  eventId?: string;
+  triggerType: 'threshold' | 'user_action' | 'downstream_request' | 'manual';
+  triggeredBy?: string; // User ID
+  resolutionSource?: string;
+}
+
 interface PropertyCandidate {
   address: string;
   city?: string;
-  property_type: 'residential' | 'commercial' | 'unknown';
-  latitude?: number;
-  longitude?: number;
+  propertyType: 'residential' | 'commercial' | 'unknown';
+  estimatedClaimProbability: number;
 }
 
-interface AddressResolutionRequest {
-  zip_code: string;
-  county_fips?: string;
-  state_code?: string;
-  event_id?: string;
-  event_type?: string;
-  trigger_type: 'threshold' | 'user_action' | 'downstream_request' | 'manual';
-  triggered_by?: string;
-  resolution_source?: string;
-}
-
-interface AddressResolutionResult {
+interface ResolutionResult {
   success: boolean;
-  zip_code: string;
-  properties_found: number;
-  properties_inserted: number;
-  resolution_source: string;
+  zipCode: string;
+  propertiesFound: number;
+  propertiesInserted: number;
   error?: string;
+  logId?: string;
 }
 
 // ============================================================================
-// ADDRESS RESOLUTION INTERFACE (PLUGGABLE)
+// THRESHOLD CHECKING
 // ============================================================================
 
 /**
- * Abstract interface for address resolution sources
- * Allows future sources: county parcels, commercial APIs, user uploads
+ * Check if ZIP meets threshold for auto-resolution
  */
-interface IAddressResolver {
-  name: string;
-  resolveAddresses(
-    zipCode: string,
-    eventType?: string,
-    options?: any
-  ): Promise<PropertyCandidate[]>;
-}
-
-// ============================================================================
-// MOCK RESOLVER (PLACEHOLDER FOR REAL SOURCES)
-// ============================================================================
-
-/**
- * Mock resolver for demonstration
- * Replace with real sources: county parcels, commercial APIs, etc.
- */
-class MockAddressResolver implements IAddressResolver {
-  name = 'mock_resolver';
+async function shouldResolveZip(zipCode: string): Promise<{
+  shouldResolve: boolean;
+  reason: string;
+}> {
+  // Get settings
+  const { data: settings } = await supabase
+    .from('address_resolution_settings')
+    .select('*')
+    .limit(1)
+    .single();
   
-  async resolveAddresses(
-    zipCode: string,
-    eventType?: string
-  ): Promise<PropertyCandidate[]> {
-    // This is a placeholder - no actual resolution
-    // In production, this would call:
-    // - County parcel APIs
-    // - Commercial property databases
-    // - User-uploaded lists
+  if (!settings) {
+    return {
+      shouldResolve: false,
+      reason: 'No settings found'
+    };
+  }
+  
+  // Get ZIP statistics from aggregates
+  const { data: zipStats } = await supabase
+    .from('loss_geo_aggregates')
+    .select('*')
+    .eq('zip_code', zipCode);
+  
+  if (!zipStats || zipStats.length === 0) {
+    return {
+      shouldResolve: false,
+      reason: 'No events found for ZIP'
+    };
+  }
+  
+  // Calculate average claim probability
+  const avgProbability = zipStats.reduce((sum, row) => sum + (row.claim_probability || 0), 0) / zipStats.length;
+  const eventCount = zipStats.length;
+  
+  // Check thresholds
+  if (avgProbability < (settings.auto_resolve_threshold || 0.70)) {
+    return {
+      shouldResolve: false,
+      reason: `Average claim probability ${(avgProbability * 100).toFixed(0)}% below threshold ${((settings.auto_resolve_threshold || 0.70) * 100).toFixed(0)}%`
+    };
+  }
+  
+  if (eventCount < (settings.min_event_count || 2)) {
+    return {
+      shouldResolve: false,
+      reason: `Event count ${eventCount} below minimum ${settings.min_event_count || 2}`
+    };
+  }
+  
+  // Check if already resolved
+  const { data: existingCandidates } = await supabase
+    .from('loss_property_candidates')
+    .select('id')
+    .eq('zip_code', zipCode)
+    .limit(1);
+  
+  if (existingCandidates && existingCandidates.length > 0) {
+    return {
+      shouldResolve: false,
+      reason: 'ZIP already has resolved properties'
+    };
+  }
+  
+  return {
+    shouldResolve: true,
+    reason: `Meets threshold: ${(avgProbability * 100).toFixed(0)}% probability, ${eventCount} events`
+  };
+}
+
+// ============================================================================
+// ADDRESS RESOLUTION SOURCES (PLUGGABLE)
+// ============================================================================
+
+/**
+ * INTERFACE for address resolution sources
+ * Future implementations can add:
+ * - County parcel data
+ * - Commercial APIs (Melissa Data, SmartyStreets, etc.)
+ * - User-uploaded lists
+ */
+interface AddressResolutionSource {
+  name: string;
+  resolveAddresses(zipCode: string, eventType?: string): Promise<PropertyCandidate[]>;
+}
+
+/**
+ * MOCK SOURCE - Replace with real implementation
+ * This is a placeholder that demonstrates the interface
+ */
+class MockAddressSource implements AddressResolutionSource {
+  name = 'mock_source';
+  
+  async resolveAddresses(zipCode: string, eventType?: string): Promise<PropertyCandidate[]> {
+    // In production, this would:
+    // 1. Query county parcel database
+    // 2. Call commercial API
+    // 3. Read from uploaded file
+    // 4. etc.
     
-    console.log(`Mock resolver: Would resolve addresses for ZIP ${zipCode}`);
+    console.log(`Mock resolution for ZIP ${zipCode}, event type: ${eventType}`);
+    
+    // Return empty array - no mock data
     return [];
   }
 }
 
-// ============================================================================
-// COUNTY PARCELS RESOLVER (TEMPLATE)
-// ============================================================================
-
 /**
- * County parcels resolver template
- * Implement based on available county APIs
+ * PLACEHOLDER SOURCE - For demonstration
+ * Shows how to structure real address sources
  */
-class CountyParcelsResolver implements IAddressResolver {
+class CountyParcelSource implements AddressResolutionSource {
   name = 'county_parcels';
   
-  async resolveAddresses(
-    zipCode: string,
-    eventType?: string
-  ): Promise<PropertyCandidate[]> {
-    // Template for county parcel API integration
-    // Example: Texas CAD APIs, California county assessors, etc.
+  async resolveAddresses(zipCode: string, eventType?: string): Promise<PropertyCandidate[]> {
+    // Future implementation:
+    // 1. Determine county from ZIP
+    // 2. Query county parcel API or database
+    // 3. Filter by property type if needed
+    // 4. Return structured candidates
     
-    const apiUrl = process.env.COUNTY_PARCELS_API_URL;
-    const apiKey = process.env.COUNTY_PARCELS_API_KEY;
-    
-    if (!apiUrl) {
-      console.log('County parcels API not configured');
-      return [];
-    }
-    
-    try {
-      const response = await fetch(
-        `${apiUrl}/parcels?zip=${zipCode}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        console.error(`County parcels API returned ${response.status}`);
-        return [];
-      }
-      
-      const data = await response.json();
-      
-      // Transform API response to PropertyCandidate format
-      return data.parcels?.map((parcel: any) => ({
-        address: parcel.address,
-        city: parcel.city,
-        property_type: parcel.property_use === 'commercial' ? 'commercial' : 'residential',
-        latitude: parcel.latitude,
-        longitude: parcel.longitude,
-      })) || [];
-      
-    } catch (error) {
-      console.error('Error fetching county parcels:', error);
-      return [];
-    }
+    console.log(`County parcel lookup for ZIP ${zipCode} (not yet implemented)`);
+    return [];
   }
 }
 
-// ============================================================================
-// COMMERCIAL API RESOLVER (TEMPLATE)
-// ============================================================================
-
 /**
- * Commercial property API resolver template
- * Implement based on available commercial APIs
+ * Get the appropriate resolution source
  */
-class CommercialAPIResolver implements IAddressResolver {
-  name = 'commercial_api';
+function getResolutionSource(sourceName?: string): AddressResolutionSource {
+  // Default to mock for now
+  // In production, select based on sourceName and availability
   
-  async resolveAddresses(
-    zipCode: string,
-    eventType?: string
-  ): Promise<PropertyCandidate[]> {
-    // Template for commercial API integration
-    // Examples: Melissa Data, Whitepages Pro, CoreLogic, etc.
-    
-    const apiUrl = process.env.PROPERTY_API_URL;
-    const apiKey = process.env.PROPERTY_API_KEY;
-    
-    if (!apiUrl) {
-      console.log('Commercial property API not configured');
-      return [];
-    }
-    
-    try {
-      const response = await fetch(
-        `${apiUrl}/properties?zip=${zipCode}&type=residential`,
-        {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        console.error(`Commercial API returned ${response.status}`);
-        return [];
-      }
-      
-      const data = await response.json();
-      
-      // Transform API response to PropertyCandidate format
-      return data.properties?.map((prop: any) => ({
-        address: prop.full_address,
-        city: prop.city,
-        property_type: prop.type || 'unknown',
-        latitude: prop.lat,
-        longitude: prop.lng,
-      })) || [];
-      
-    } catch (error) {
-      console.error('Error fetching from commercial API:', error);
-      return [];
-    }
+  if (sourceName === 'county_parcels') {
+    return new CountyParcelSource();
   }
-}
-
-// ============================================================================
-// RESOLVER FACTORY
-// ============================================================================
-
-/**
- * Get resolver by name
- * Allows pluggable architecture for different sources
- */
-function getResolver(source: string): IAddressResolver {
-  switch (source) {
-    case 'county_parcels':
-      return new CountyParcelsResolver();
-    case 'commercial_api':
-      return new CommercialAPIResolver();
-    case 'mock':
-    default:
-      return new MockAddressResolver();
-  }
+  
+  return new MockAddressSource();
 }
 
 // ============================================================================
@@ -232,270 +217,269 @@ function getResolver(source: string): IAddressResolver {
  * Calculate property-level claim probability
  * Starts with ZIP-level probability and adjusts
  */
-function calculatePropertyProbability(
+function calculatePropertyClaimProbability(
   zipLevelProbability: number,
   propertyType: string,
   eventType: string
-): { probability: number; adjustment: number } {
-  let adjustment = 0;
+): number {
+  let probability = zipLevelProbability;
   
   // Property type adjustments
-  if (propertyType === 'residential') {
-    // Residential properties
-    if (eventType === 'Hail') adjustment += 0.05; // Roofs more vulnerable
-    if (eventType === 'Fire') adjustment += 0.02;
-  } else if (propertyType === 'commercial') {
-    // Commercial properties
-    if (eventType === 'Fire') adjustment += 0.05; // Larger structures
-    if (eventType === 'Wind') adjustment += 0.03;
+  if (propertyType === 'commercial') {
+    probability *= 1.15; // Commercial more likely to file
+  } else if (propertyType === 'residential') {
+    probability *= 1.0; // Baseline
   }
   
-  // Apply adjustment (capped at 0.95)
-  const probability = Math.min(0.95, zipLevelProbability + adjustment);
+  // Event type adjustments
+  const eventMultipliers: Record<string, number> = {
+    'Fire': 1.2,
+    'Hail': 1.1,
+    'Wind': 1.05,
+    'Freeze': 0.95
+  };
   
-  return { probability, adjustment };
+  probability *= eventMultipliers[eventType] || 1.0;
+  
+  // Cap at 0.95
+  return Math.min(probability, 0.95);
 }
 
 // ============================================================================
-// MAIN RESOLUTION LOGIC
+// MAIN RESOLUTION PROCESS
 // ============================================================================
 
 /**
  * Resolve addresses for a ZIP code
  */
-async function resolveAddressesForZIP(
-  supabase: any,
+async function resolveAddressesForZip(
   request: AddressResolutionRequest
-): Promise<AddressResolutionResult> {
-  const { zip_code, event_id, event_type, trigger_type, triggered_by, resolution_source } = request;
+): Promise<ResolutionResult> {
+  const { zipCode, eventId, triggerType, triggeredBy, resolutionSource } = request;
   
-  // Determine resolution source (use provided or default to first available)
-  const source = resolution_source || 'mock';
-  const resolver = getResolver(source);
+  // Log the resolution attempt
+  const { data: logEntry, error: logError } = await supabase
+    .from('address_resolution_log')
+    .insert({
+      zip_code: zipCode,
+      event_id: eventId,
+      trigger_type: triggerType,
+      triggered_by: triggeredBy,
+      resolution_source: resolutionSource || 'mock_source',
+      status: 'pending'
+    })
+    .select()
+    .single();
   
-  console.log(`Resolving addresses for ZIP ${zip_code} using ${resolver.name}`);
-  
-  // Create resolution log
-  const { data: logData, error: logError } = await supabase.rpc('log_address_resolution', {
-    p_zip_code: zip_code,
-    p_event_id: event_id || null,
-    p_trigger_type: trigger_type,
-    p_triggered_by: triggered_by || null,
-    p_resolution_source: resolver.name,
-  });
-  
-  if (logError) {
-    console.error('Error creating resolution log:', logError);
+  if (logError || !logEntry) {
+    return {
+      success: false,
+      zipCode,
+      propertiesFound: 0,
+      propertiesInserted: 0,
+      error: 'Failed to create resolution log'
+    };
   }
   
-  const logId = logData;
-  
   try {
-    // Get ZIP-level probability
-    const { data: zipStats, error: zipError } = await supabase
-      .from('loss_opportunities_by_zip')
-      .select('avg_claim_probability, event_type')
-      .eq('zip_code', zip_code)
-      .maybeSingle();
+    // Get ZIP-level statistics for scoring
+    const { data: zipAggregates } = await supabase
+      .from('loss_geo_aggregates')
+      .select('*')
+      .eq('zip_code', zipCode);
     
-    if (zipError || !zipStats) {
-      throw new Error(`Could not find ZIP statistics for ${zip_code}`);
+    if (!zipAggregates || zipAggregates.length === 0) {
+      await supabase
+        .from('address_resolution_log')
+        .update({
+          status: 'failed',
+          error_message: 'No aggregates found for ZIP',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', logEntry.id);
+      
+      return {
+        success: false,
+        zipCode,
+        propertiesFound: 0,
+        propertiesInserted: 0,
+        error: 'No aggregates found for ZIP',
+        logId: logEntry.id
+      };
     }
     
-    const zipLevelProbability = zipStats.avg_claim_probability;
-    const zipEventType = event_type || zipStats.event_type;
+    // Calculate average ZIP-level probability
+    const avgZipProbability = zipAggregates.reduce((sum, row) => 
+      sum + (row.claim_probability || 0), 0) / zipAggregates.length;
+    
+    // Get most recent event type for context
+    const recentAggregate = zipAggregates.sort((a, b) => 
+      new Date(b.event_timestamp).getTime() - new Date(a.event_timestamp).getTime()
+    )[0];
     
     // Resolve addresses using selected source
-    const properties = await resolver.resolveAddresses(zip_code, zipEventType);
+    const source = getResolutionSource(resolutionSource);
+    const candidates = await source.resolveAddresses(zipCode, recentAggregate.event_type);
     
-    console.log(`Found ${properties.length} properties from ${resolver.name}`);
+    console.log(`Found ${candidates.length} property candidates for ZIP ${zipCode}`);
     
-    // Get settings for max properties limit
-    const { data: settings } = await supabase
-      .from('address_resolution_settings')
-      .select('max_properties_per_zip')
-      .limit(1)
-      .maybeSingle();
-    
-    const maxProperties = settings?.max_properties_per_zip || 500;
-    const limitedProperties = properties.slice(0, maxProperties);
-    
-    if (properties.length > maxProperties) {
-      console.warn(`Limited properties from ${properties.length} to ${maxProperties}`);
-    }
-    
-    // Insert property candidates
+    // Insert candidates into database
     let insertedCount = 0;
-    
-    for (const property of limitedProperties) {
-      try {
-        // Calculate property-level probability
-        const { probability, adjustment } = calculatePropertyProbability(
-          zipLevelProbability,
-          property.property_type,
-          zipEventType
+    if (candidates.length > 0) {
+      const candidateRecords = candidates.map(candidate => {
+        const propertyProbability = calculatePropertyClaimProbability(
+          avgZipProbability,
+          candidate.propertyType,
+          recentAggregate.event_type
         );
         
-        // Insert property candidate
-        const { error: insertError } = await supabase
-          .from('loss_property_candidates')
-          .insert({
-            zip_code,
-            county_fips: request.county_fips,
-            state_code: request.state_code,
-            address: property.address,
-            city: property.city,
-            property_type: property.property_type,
-            resolution_source: resolver.name,
-            resolution_trigger: trigger_type,
-            event_id: event_id || null,
-            event_type: zipEventType,
-            estimated_claim_probability: probability,
-            zip_level_probability: zipLevelProbability,
-            property_score_adjustment: adjustment,
-            status: 'unreviewed',
-          });
-        
-        if (insertError) {
-          if (insertError.code === '23505') {
-            // Duplicate - skip
-            continue;
-          }
-          console.error('Error inserting property:', insertError);
-        } else {
-          insertedCount++;
-        }
-        
-      } catch (propError) {
-        console.error('Error processing property:', propError);
+        return {
+          zip_code: zipCode,
+          county_fips: recentAggregate.county_fips,
+          state_code: recentAggregate.state_code,
+          address: candidate.address,
+          city: candidate.city,
+          property_type: candidate.propertyType,
+          resolution_source: source.name,
+          resolution_trigger: triggerType,
+          event_id: eventId,
+          event_type: recentAggregate.event_type,
+          estimated_claim_probability: propertyProbability,
+          zip_level_probability: avgZipProbability,
+          property_score_adjustment: propertyProbability - avgZipProbability,
+          status: 'unreviewed'
+        };
+      });
+      
+      const { data: inserted, error: insertError } = await supabase
+        .from('loss_property_candidates')
+        .insert(candidateRecords)
+        .select();
+      
+      if (insertError) {
+        console.error('Error inserting candidates:', insertError);
+      } else {
+        insertedCount = inserted?.length || 0;
       }
     }
     
-    // Complete resolution log
-    if (logId) {
-      await supabase.rpc('complete_address_resolution', {
-        p_log_id: logId,
-        p_properties_found: properties.length,
-        p_properties_inserted: insertedCount,
-        p_error_message: null,
-      });
-    }
-    
-    console.log(`✅ Inserted ${insertedCount} property candidates for ZIP ${zip_code}`);
+    // Update resolution log
+    await supabase
+      .from('address_resolution_log')
+      .update({
+        properties_found: candidates.length,
+        properties_inserted: insertedCount,
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', logEntry.id);
     
     return {
       success: true,
-      zip_code,
-      properties_found: properties.length,
-      properties_inserted: insertedCount,
-      resolution_source: resolver.name,
+      zipCode,
+      propertiesFound: candidates.length,
+      propertiesInserted: insertedCount,
+      logId: logEntry.id
     };
-    
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error resolving addresses:', error);
-    
-    // Complete resolution log with error
-    if (logId) {
-      await supabase.rpc('complete_address_resolution', {
-        p_log_id: logId,
-        p_properties_found: 0,
-        p_properties_inserted: 0,
-        p_error_message: errorMessage,
-      });
-    }
+    // Log the error
+    await supabase
+      .from('address_resolution_log')
+      .update({
+        status: 'failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', logEntry.id);
     
     return {
       success: false,
-      zip_code,
-      properties_found: 0,
-      properties_inserted: 0,
-      resolution_source: resolver.name,
-      error: errorMessage,
+      zipCode,
+      propertiesFound: 0,
+      propertiesInserted: 0,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      logId: logEntry.id
     };
   }
 }
 
 // ============================================================================
-// NETLIFY FUNCTION HANDLER
+// NETLIFY HANDLER
 // ============================================================================
 
-const handler: Handler = async (event, context) => {
-  console.log('🏠 Starting address resolution...');
+export const handler: Handler = async (
+  event: HandlerEvent,
+  context: HandlerContext
+) => {
+  console.log('Address resolution function invoked');
   
-  const startTime = Date.now();
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
   
   try {
-    // Initialize Supabase client with service role key
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const request: AddressResolutionRequest = JSON.parse(event.body || '{}');
     
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase configuration');
-    }
-    
-    const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-    
-    // Parse request body
-    const body = event.body ? JSON.parse(event.body) : {};
-    
-    const request: AddressResolutionRequest = {
-      zip_code: body.zip_code,
-      county_fips: body.county_fips,
-      state_code: body.state_code,
-      event_id: body.event_id,
-      event_type: body.event_type,
-      trigger_type: body.trigger_type || 'manual',
-      triggered_by: body.triggered_by,
-      resolution_source: body.resolution_source,
-    };
-    
-    if (!request.zip_code) {
+    // Validate request
+    if (!request.zipCode) {
       return {
         statusCode: 400,
-        body: JSON.stringify({
-          success: false,
-          error: 'zip_code is required',
-        }),
+        body: JSON.stringify({ error: 'Missing required field: zipCode' })
       };
     }
     
-    // Resolve addresses
-    const result = await resolveAddressesForZIP(supabase, request);
+    if (!request.triggerType) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing required field: triggerType' })
+      };
+    }
     
-    const duration = Date.now() - startTime;
+    // Check if resolution should proceed (unless manual override)
+    if (request.triggerType === 'threshold') {
+      const check = await shouldResolveZip(request.zipCode);
+      if (!check.shouldResolve) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            success: false,
+            reason: check.reason,
+            zipCode: request.zipCode
+          })
+        };
+      }
+    }
     
-    console.log('🎉 Address resolution complete:', {
-      ...result,
-      duration_ms: duration,
-    });
+    // Perform resolution
+    const result = await resolveAddressesForZip(request);
     
     return {
       statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         ...result,
-        duration_ms: duration,
-      }),
+        timestamp: new Date().toISOString()
+      })
     };
-    
   } catch (error) {
-    console.error('❌ Fatal error during address resolution:', error);
+    console.error('Address resolution failed:', error);
     
     return {
       statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        duration: Date.now() - startTime,
-      }),
+        timestamp: new Date().toISOString()
+      })
     };
   }
 };
-
-// Export function (called via API, not scheduled)
-export { handler };
