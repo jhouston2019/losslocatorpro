@@ -99,7 +99,7 @@ async function resolveEventGeography(event: any): Promise<GeoResolutionResult> {
   // STRATEGY 1: Event already has county_fips
   if (event.county_fips) {
     countyFips = event.county_fips;
-    zipCodes = await getZipsForCounty(countyFips);
+    zipCodes = await getZipsForCounty(countyFips!);
     resolutionLevel = zipCodes.length > 0 ? 'county' : 'state';
   }
   // STRATEGY 2: Event has ZIP code(s)

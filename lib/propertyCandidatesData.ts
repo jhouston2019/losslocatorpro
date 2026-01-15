@@ -203,7 +203,7 @@ export async function shouldResolveZip(zipCode: string): Promise<{
   }
   
   // Check ZIP-level statistics
-  const { data: zipStats } = await supabase
+  const { data: zipStats } = await (supabase as any)
     .from('loss_opportunities_by_zip')
     .select('*')
     .eq('zip_code', zipCode)

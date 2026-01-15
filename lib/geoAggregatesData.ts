@@ -132,7 +132,7 @@ export async function getGeoAggregates(
 export async function getZipOpportunities(
   filters?: GeoAggregateFilters
 ): Promise<ZipOpportunity[]> {
-  let query = supabase
+  let query = (supabase as any)
     .from('loss_opportunities_by_zip')
     .select('*')
     .order('max_claim_probability', { ascending: false });
@@ -156,7 +156,7 @@ export async function getZipOpportunities(
     throw error;
   }
   
-  return (data || []).map(row => ({
+  return (data || []).map((row: any) => ({
     zipCode: row.zip_code,
     stateCode: row.state_code,
     countyFips: row.county_fips,
@@ -179,7 +179,7 @@ export async function getZipOpportunities(
 export async function getCountyOpportunities(
   filters?: GeoAggregateFilters
 ): Promise<CountyOpportunity[]> {
-  let query = supabase
+  let query = (supabase as any)
     .from('loss_opportunities_by_county')
     .select('*')
     .order('max_claim_probability', { ascending: false });
@@ -203,7 +203,7 @@ export async function getCountyOpportunities(
     throw error;
   }
   
-  return (data || []).map(row => ({
+  return (data || []).map((row: any) => ({
     countyFips: row.county_fips,
     stateCode: row.state_code,
     eventType: row.event_type,
@@ -224,7 +224,7 @@ export async function getCountyOpportunities(
  * Get high-confidence ZIP clusters ready for address resolution
  */
 export async function getZipsReadyForResolution(): Promise<any[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('zip_clusters_ready_for_resolution')
     .select('*')
     .eq('meets_threshold', true)
