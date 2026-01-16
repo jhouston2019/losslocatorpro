@@ -7,11 +7,8 @@ import { signOut, getCurrentUser } from '@/lib/auth';
 import type { AuthUser } from '@/lib/auth';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/loss-feed', label: 'Loss Feed' },
-  { href: '/geo-opportunities', label: 'Geo Opportunities' },
-  { href: '/lead-routing', label: 'Lead Routing' },
-  { href: '/property/10001', label: 'Property Lookup' },
+  { href: '/dashboard', label: 'Assignments' },
+  { href: '/lead-routing', label: 'Routing' },
   { href: '/admin', label: 'Admin' },
 ];
 
@@ -46,10 +43,10 @@ export default function NavBar() {
           </div>
           <div className="leading-tight">
             <p className="font-semibold text-white">
-              Loss Locator Pro — Internal
+              Loss Locator Pro
             </p>
             <p className="text-xs text-[#B8BFCC]">
-              Loss intelligence & routing
+              Territory-assigned loss addresses
             </p>
           </div>
         </div>

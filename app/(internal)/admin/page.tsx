@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAdminSettings, updateAdminSettings } from '@/lib/data';
+import { getAdminSettings, updateAdminSettings, getLossEvents } from '@/lib/data';
+import { getCurrentUser } from '@/lib/auth';
 import type { AdminSettings } from '@/lib/database.types';
 
 export default function AdminPage() {
@@ -12,6 +13,13 @@ export default function AdminPage() {
   const [minClaimProb, setMinClaimProb] = useState(70);
   const [autoCreateLead, setAutoCreateLead] = useState(true);
   const [nightlyExport, setNightlyExport] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  
+  // Internal metrics
+  const [totalIngested, setTotalIngested] = useState(0);
+  const [totalAssigned, setTotalAssigned] = useState(0);
+  const [totalUnassigned, setTotalUnassigned] = useState(0);
+  const [last24Hours, setLast24Hours] = useState(0);
   
   // New enrichment thresholds
   const [minIncomePercentile, setMinIncomePercentile] = useState(0);
@@ -21,7 +29,39 @@ export default function AdminPage() {
   const [commercialOnlyRouting, setCommercialOnlyRouting] = useState(false);
 
   useEffect(() => {
-    async function loadSettings() {
+    checkAdminAccess();
+  }, []);
+
+  async function checkAdminAccess() {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      window.location.href = '/dashboard';
+      return;
+    }
+    setIsAdmin(true);
+    loadSettings();
+    loadMetrics();
+  }
+
+  async function loadMetrics() {
+    try {
+      const events = await getLossEvents();
+      setTotalIngested(events.length);
+      
+      const assigned = events.filter(e => e.status !== 'Unreviewed').length;
+      setTotalAssigned(assigned);
+      setTotalUnassigned(events.length - assigned);
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const recent = events.filter(e => new Date(e.event_timestamp) >= yesterday).length;
+      setLast24Hours(recent);
+    } catch (error) {
+      console.error('Error loading metrics:', error);
+    }
+  }
+
+  async function loadSettings() {
       try {
         setLoading(true);
         const data = await getAdminSettings();
@@ -71,7 +111,7 @@ export default function AdminPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
         <div className="text-center">
@@ -86,12 +126,31 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#0f172a]">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="card">
-          <h1 className="card-header">Admin</h1>
+          <h1 className="card-header">Admin (Internal Only)</h1>
           <p className="subtext">
-            Internal configuration for users, event sources, thresholds, and
-            automation.
+            Internal ops metrics, territory assignment, and system configuration.
           </p>
         </header>
+
+        {/* Internal Metrics Section */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="card p-4 border-l-4 border-[#00D9FF]">
+            <p className="text-2xl font-bold text-white">{totalIngested}</p>
+            <p className="text-sm text-[#B8BFCC] mt-1">Total Addresses Ingested</p>
+          </div>
+          <div className="card p-4 border-l-4 border-[#00E5A0]">
+            <p className="text-2xl font-bold text-white">{totalAssigned}</p>
+            <p className="text-sm text-[#B8BFCC] mt-1">Assigned to Buyers</p>
+          </div>
+          <div className="card p-4 border-l-4 border-[#FFB020]">
+            <p className="text-2xl font-bold text-white">{totalUnassigned}</p>
+            <p className="text-sm text-[#B8BFCC] mt-1">Unassigned</p>
+          </div>
+          <div className="card p-4 border-l-4 border-[#FF3B5C]">
+            <p className="text-2xl font-bold text-white">{last24Hours}</p>
+            <p className="text-sm text-[#B8BFCC] mt-1">Last 24 Hours</p>
+          </div>
+        </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div className="space-y-3">

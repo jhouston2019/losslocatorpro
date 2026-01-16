@@ -59,11 +59,15 @@ export default function RealMap({ events }: MapProps) {
     return isValidCoordinate(e.lat, e.lng);
   });
   
-  // Calculate center based on events or default to Houston
-  const center: [number, number] = eventsWithCoords.length > 0 && 
-    isValidCoordinate(eventsWithCoords[0].lat, eventsWithCoords[0].lng)
-    ? [eventsWithCoords[0].lat!, eventsWithCoords[0].lng!]
-    : [29.7604, -95.3698];
+  // Calculate center based on assigned territory (events average)
+  let center: [number, number] = [29.7604, -95.3698]; // Default
+  if (eventsWithCoords.length > 0) {
+    const avgLat = eventsWithCoords.reduce((sum, e) => sum + (e.lat || 0), 0) / eventsWithCoords.length;
+    const avgLng = eventsWithCoords.reduce((sum, e) => sum + (e.lng || 0), 0) / eventsWithCoords.length;
+    if (isValidCoordinate(avgLat, avgLng)) {
+      center = [avgLat, avgLng];
+    }
+  }
 
   // Show empty state if no valid events
   if (eventsWithCoords.length === 0) {
@@ -78,8 +82,11 @@ export default function RealMap({ events }: MapProps) {
     <div className="w-full h-[400px] rounded-lg overflow-hidden border border-gray-200" style={{ boxShadow: 'var(--panel-shadow)' }}>
       <MapContainer
         center={center}
-        zoom={6}
+        zoom={10}
         scrollWheelZoom={false}
+        dragging={false}
+        zoomControl={false}
+        doubleClickZoom={false}
         className="h-full w-full"
       >
         <TileLayer

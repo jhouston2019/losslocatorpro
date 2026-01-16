@@ -36,13 +36,13 @@ export default function LoginPage() {
               Loss Locator Pro
             </h1>
             <p className="text-xs text-[#B8BFCC]">
-              Internal Console
+              Territory Access
             </p>
           </div>
         </div>
 
         <p className="text-sm text-[#8B92A3] mb-6">
-          Internal access only. Use your assigned credentials.
+          Licensed territory access. Use your assigned credentials.
         </p>
 
         {error && (

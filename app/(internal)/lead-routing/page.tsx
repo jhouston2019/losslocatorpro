@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { getRoutingQueueWithDetails, assignLead, getLossPropertyByLossId, getZipDemographicByZip } from '@/lib/data';
+import { getCurrentUser } from '@/lib/auth';
 import type { LossEvent, Property, RoutingQueueEntry, LossProperty, ZipDemographic } from '@/lib/database.types';
 
 type LeadStatus =
@@ -43,14 +44,25 @@ export default function LeadRoutingPage() {
   const [assignedTo, setAssignedTo] = useState<string>('');
   const [priority, setPriority] = useState<string>('High');
   const [notes, setNotes] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   // New filters
   const [commercialOnly, setCommercialOnly] = useState<boolean>(false);
   const [phoneRequired, setPhoneRequired] = useState<boolean>(false);
 
   useEffect(() => {
-    loadRoutingQueue();
+    checkAdminAccess();
   }, []);
+
+  async function checkAdminAccess() {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'admin') {
+      window.location.href = '/dashboard';
+      return;
+    }
+    setIsAdmin(true);
+    loadRoutingQueue();
+  }
 
   async function loadRoutingQueue() {
     try {
@@ -148,7 +160,7 @@ export default function LeadRoutingPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f172a]">
         <div className="text-center">
@@ -163,9 +175,9 @@ export default function LeadRoutingPage() {
     <div className="min-h-screen bg-[#0f172a]">
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <header className="card">
-          <h1 className="card-header">Lead Routing</h1>
+          <h1 className="card-header">Lead Routing (Admin Only)</h1>
           <p className="subtext">
-            Internal workflow engine for assigning outreach and follow-up.
+            Internal ops tool for territory assignment and delivery management.
           </p>
         </header>
 
